@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipse Video Player - Modern, Lightweight, Accessible</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        twilight: {
+                            teal: '#101D27',
+                            purple: '#373542',
+                            plum: '#554865',
+                            accent: '#8F62AA',
+                        },
+                        soft: {
+                            white: '#EDF2F4',
+                            muted: 'rgba(237, 242, 244, 0.7)',
+                        }
+                    },
+                    backgroundImage: {
+                        'twilight-gradient': 'linear-gradient(to bottom right, #101D27, #373542, #554865)',
+                        'text-gradient': 'linear-gradient(to right, #F472B6, #A78BFA)',
+                        'btn-gradient': 'linear-gradient(to right, #8F62AA, #6D28D9)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                    mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #101D27 0%, #373542 50%, #554865 100%);
+            background-attachment: fixed;
+            color: #EDF2F4;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101D27;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #373542;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #554865;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(143, 98, 170, 0.2);
+        }
+
+        .glass-panel:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(143, 98, 170, 0.4);
+            box-shadow: 0 0 20px rgba(143, 98, 170, 0.15);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-down {
+            animation: fadeInDown 0.6s ease-out forwards;
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .delay-100 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-200 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-300 {
+            animation-delay: 0.3s;
+        }
+
+        /* Video Player Library CSS Override/Integration */
+        /* Assuming dist/video-player.css is loaded or styles are minimal enough */
+    </style>
+    <link rel="stylesheet" href="./dist/video-player.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="min-h-screen overflow-x-hidden selection:bg-twilight-accent selection:text-white">
+
+    <!-- Header -->
+    <header
+        class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-sm bg-twilight-teal/10 border-b border-white/5 animate-fade-in-down">
+        <div class="flex items-center gap-2">
+            <div
+                class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            </div>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-text-gradient">
+                Clipse Video Player
+            </span>
+        </div>
+
+        <nav class="hidden md:flex items-center gap-8">
+            <a href="#demo"
+                class="text-sm font-medium text-soft-white/80 hover:text-twilight-accent transition-colors duration-200 relative group">
+                Demo
+                <span
+                    class="absolute -bottom-1 left-0 w-0 h-0.5 bg-twilight-accent transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="#features"
+                class="text-sm font-medium text-soft-white/80 hover:text-twilight-accent transition-colors duration-200 relative group">
+                Features
+                <span
+                    class="absolute -bottom-1 left-0 w-0 h-0.5 bg-twilight-accent transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="#docs"
+                class="text-sm font-medium text-soft-white/80 hover:text-twilight-accent transition-colors duration-200 relative group">
+                Docs
+                <span
+                    class="absolute -bottom-1 left-0 w-0 h-0.5 bg-twilight-accent transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="https://github.com/bretmuchow07/clips-video-player" target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel hover:bg-white/10 transition-all duration-300 group">
+                <i data-lucide="github"
+                    class="w-4 h-4 text-soft-white group-hover:text-twilight-accent transition-colors"></i>
+                <span class="text-sm font-medium">GitHub</span>
+            </a>
+        </nav>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-soft-white">
+            <i data-lucide="menu"></i>
+        </button>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu"
+        class="fixed inset-0 z-40 bg-twilight-teal/95 backdrop-blur-xl transform translate-x-full transition-transform duration-300 md:hidden flex items-center justify-center">
+        <button id="close-mobile-menu" class="absolute top-6 right-6 p-2 text-soft-white">
+            <i data-lucide="x"></i>
+        </button>
+        <nav class="flex flex-col items-center gap-8 text-xl">
+            <a href="#demo" class="mobile-link text-soft-white hover:text-twilight-accent">Demo</a>
+            <a href="#features" class="mobile-link text-soft-white hover:text-twilight-accent">Features</a>
+            <a href="#docs" class="mobile-link text-soft-white hover:text-twilight-accent">Docs</a>
+            <a href="https://github.com/bretmuchow07/clips-video-player"
+                class="mobile-link flex items-center gap-2 text-soft-white hover:text-twilight-accent">
+                <i data-lucide="github"></i> GitHub
+            </a>
+        </nav>
+    </div>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="relative pt-32 pb-20 px-6 md:pt-48 md:pb-32 overflow-hidden">
+            <!-- Background Glow Effects -->
+            <div class="absolute top-20 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] -z-10"></div>
+            <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-pink-600/10 rounded-full blur-[80px] -z-10"></div>
+
+            <div class="max-w-7xl mx-auto text-center">
+                <div class="animate-fade-in-up">
+                    <span
+                        class="inline-block px-4 py-1.5 rounded-full glass-panel text-xs font-medium text-twilight-accent mb-6 border-twilight-accent/30">
+                        v1.0.1 is now available
+                    </span>
+                </div>
+
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 animate-fade-in-up delay-100">
+                    The Modern Video Player for <br />
+                    <span class="bg-clip-text text-transparent bg-text-gradient">
+                        Web Developers
+                    </span>
+                </h1>
+
+                <p
+                    class="text-lg md:text-xl text-soft-muted max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up delay-200">
+                    A lightweight, fully customizable, and accessible video player
+                    component designed for the modern web. Built for you, ready for
+                    production.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
+                    <button
+                        class="w-full sm:w-auto px-8 py-3.5 rounded-lg bg-btn-gradient text-white font-semibold shadow-lg shadow-purple-900/40 hover:shadow-purple-700/50 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group">
+                        Get Started
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <button
+                        class="w-full sm:w-auto px-8 py-3.5 rounded-lg glass-panel text-soft-white font-medium hover:bg-white/10 hover:border-twilight-accent/50 transition-all duration-300 flex items-center justify-center gap-2">
+                        <i data-lucide="play-circle" class="w-4 h-4 text-twilight-accent"></i>
+                        View Demo
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Video Player Demo -->
+        <section id="demo" class="py-20 px-4 relative">
+            <div class="max-w-5xl mx-auto">
+                <div
+                    class="glass-panel rounded-2xl p-2 md:p-4 shadow-2xl shadow-black/40 relative overflow-hidden group animate-fade-in-up">
+                    <!-- Glow border effect -->
+                    <div
+                        class="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-50 pointer-events-none">
+                    </div>
+
+                    <!-- Video Container -->
+                    <div id="video-container"
+                        class="relative aspect-video bg-gradient-to-br from-gray-900 to-black rounded-xl overflow-hidden flex flex-col justify-between group-hover:shadow-[0_0_40px_rgba(143,98,170,0.3)] transition-shadow duration-500">
+                        <!-- The library will inject the player here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section id="features" class="py-20 px-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold mb-4">
+                        Everything you need
+                    </h2>
+                    <p class="text-soft-muted text-lg max-w-2xl mx-auto">
+                        Powerful features packed into a tiny footprint.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Feature Items -->
+                    <!-- 1 -->
+                    <div
+                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="settings-2" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-soft-white mb-3">Smart Controls</h3>
+                        <p class="text-soft-muted leading-relaxed">Built-in quality selection and settings menu
+                            interfaces, ready for your adaptive streams.</p>
+                    </div>
+
+                    <!-- 2 -->
+                    <div
+                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="zap" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-soft-white mb-3">Lightweight Core</h3>
+                        <p class="text-soft-muted leading-relaxed">Zero-dependency architecture. Optimized for blazing
+                            fast load times.</p>
+                    </div>
+
+                    <!-- 3 -->
+                    <div
+                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="code-2" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-soft-white mb-3">Event-Driven API</h3>
+                        <p class="text-soft-muted leading-relaxed">Rich event emitter system for seamless integration
+                            with your application logic.</p>
+                    </div>
+
+                    <!-- 4 -->
+                    <div
+                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-soft-white mb-3">Mobile Responsive</h3>
+                        <p class="text-soft-muted leading-relaxed">Touch-optimized controls that adapt seamlessly to
+                            different viewport sizes.</p>
+                    </div>
+
+                    <!-- 5 -->
+                    <div
+                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-soft-white mb-3">Framework Agnostic</h3>
+                        <p class="text-soft-muted leading-relaxed">Pure Vanilla JS. Wrappable in React, Vue, Svelte, or
+                            Angular without issues.</p>
+                    </div>
+
+                    <!-- 6 -->
+                    <div
+                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
+                        <div
+                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-fuchsia-400 to-pink-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i data-lucide="palette" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-soft-white mb-3">Themable</h3>
+                        <p class="text-soft-muted leading-relaxed">Standard dark mode included. Easily customizable with
+                            CSS variables.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Section -->
+        <section id="docs" class="py-20 px-6 relative overflow-hidden">
+            <!-- Background Overlay -->
+            <div class="absolute inset-0 bg-twilight-teal/50 backdrop-blur-sm -z-10"></div>
+
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Simple to Use</h2>
+                    <p class="text-soft-muted">
+                        Get up and running in less than 30 seconds.
+                    </p>
+                </div>
+
+                <div class="rounded-xl overflow-hidden shadow-2xl border border-purple-500/30 bg-[#101D27]">
+                    <!-- Tabs -->
+                    <div class="flex border-b border-white/5">
+                        <button
+                            class="doc-tab active flex-1 px-6 py-3 text-sm font-medium text-white bg-white/5 border-b-2 border-twilight-accent transition-colors hover:bg-white/10"
+                            data-tab="cdn">
+                            Vanilla / CDN
+                        </button>
+                        <button
+                            class="doc-tab flex-1 px-6 py-3 text-sm font-medium text-soft-muted hover:text-white border-b-2 border-transparent transition-colors hover:bg-white/5"
+                            data-tab="react">
+                            React
+                        </button>
+                    </div>
+
+                    <!-- Terminal Header -->
+                    <div class="flex items-center justify-between px-4 py-3 bg-[#0A1219] border-b border-white/5">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 font-mono">bash / js / jsx</div>
+                    </div>
+
+                    <!-- CDN Content -->
+                    <div id="tab-cdn" class="tab-content block">
+                        <!-- HTML/CDN Import -->
+                        <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between group">
+                            <div class="font-mono text-xs md:text-sm text-soft-white whitespace-pre-wrap">
+                                <span class="text-gray-500">&lt;!-- CSS --&gt;</span>
+                                <span class="text-purple-400">&lt;link</span> <span
+                                    class="text-blue-300">rel</span>=<span class="text-green-300">"stylesheet"</span>
+                                <span class="text-blue-300">href</span>=<span
+                                    class="text-green-300">"https://unpkg.com/@clipse_video-player/video-player/dist/video-player.css"</span><span
+                                    class="text-purple-400">&gt;</span>
+
+                                <span class="text-gray-500">&lt;!-- JS --&gt;</span>
+                                <span class="text-purple-400">&lt;script</span> <span
+                                    class="text-blue-300">src</span>=<span
+                                    class="text-green-300">"https://unpkg.com/@clipse_video-player/video-player/dist/video-player.min.js"</span><span
+                                    class="text-purple-400">&gt;&lt;/script&gt;</span>
+                            </div>
+                            <button
+                                class="copy-btn p-2 rounded hover:bg-white/10 transition-colors text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 self-start"
+                                data-copy='<link rel="stylesheet" href="https://unpkg.com/@clipse_video-player/video-player/dist/video-player.css">
+<script src="https://unpkg.com/@clipse_video-player/video-player/dist/video-player.min.js"></script>'>
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Usage Code -->
+                        <div class="p-6 relative group">
+                            <button
+                                class="copy-btn absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-gray-400 hover:text-white opacity-0 group-hover:opacity-100"
+                                data-copy="<div id='player'></div>
+<script>
+  const player = new VideoPlayer({
+    container: '#player',
+    src: 'https://example.com/video.mp4'
+  });
+</script>">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+
+                            <pre class="font-mono text-sm leading-relaxed overflow-x-auto text-left"><code>
+<span class="text-purple-400">&lt;div</span> <span class="text-blue-300">id</span>=<span class="text-green-300">"player"</span><span class="text-purple-400">&gt;&lt;/div&gt;</span>
+
+<span class="text-purple-400">&lt;script&gt;</span>
+  <span class="text-purple-400">const</span> <span class="text-blue-300">player</span> = <span class="text-purple-400">new</span> <span class="text-yellow-200">VideoPlayer</span>({
+    <span class="text-blue-300">container</span>: <span class="text-green-300">'#player'</span>,
+    <span class="text-blue-300">src</span>: <span class="text-green-300">'https://example.com/video.mp4'</span>
+  });
+<span class="text-purple-400">&lt;/script&gt;</span></code></pre>
+                        </div>
+                    </div>
+
+                    <!-- React Content -->
+                    <div id="tab-react" class="tab-content hidden">
+                        <!-- NPM Install -->
+                        <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between group">
+                            <code class="font-mono text-sm text-soft-white">
+                                <span class="text-purple-400">npm</span> install @clipse_video-player/video-player
+                            </code>
+                            <button
+                                class="copy-btn p-2 rounded hover:bg-white/10 transition-colors text-gray-400 hover:text-white opacity-0 group-hover:opacity-100"
+                                data-copy="npm install @clipse_video-player/video-player">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Usage Code -->
+                        <div class="p-6 relative group">
+                            <button
+                                class="copy-btn absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-gray-400 hover:text-white opacity-0 group-hover:opacity-100"
+                                data-copy="import React, { useEffect, useRef } from 'react';
+import VideoPlayer from '@clipse_video-player/video-player';
+import '@clipse_video-player/video-player/dist/video-player.css';
+
+export const Player = () => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const player = new VideoPlayer({
+      container: ref.current,
+      src: 'video.mp4'
+    });
+    return () => player.destroy();
+  }, []);
+
+  return <div ref={ref} />;
+};">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+
+                            <pre class="font-mono text-sm leading-relaxed overflow-x-auto text-left"><code>
+<span class="text-purple-400">import</span> <span class="text-yellow-200">React, { useEffect, useRef }</span> <span class="text-purple-400">from</span> <span class="text-green-300">'react'</span>;
+<span class="text-purple-400">import</span> <span class="text-yellow-200">VideoPlayer</span> <span class="text-purple-400">from</span> <span class="text-green-300">'@clipse_video-player/video-player'</span>;
+<span class="text-purple-400">import</span> <span class="text-green-300">'@clipse_video-player/video-player/dist/video-player.css'</span>;
+
+<span class="text-purple-400">export const</span> <span class="text-blue-300">Player</span> = () => {
+  <span class="text-purple-400">const</span> <span class="text-blue-300">ref</span> = <span class="text-yellow-200">useRef</span>(<span class="text-purple-400">null</span>);
+
+  <span class="text-yellow-200">useEffect</span>(() => {
+    <span class="text-purple-400">const</span> <span class="text-blue-300">player</span> = <span class="text-purple-400">new</span> <span class="text-yellow-200">VideoPlayer</span>({
+      <span class="text-blue-300">container</span>: <span class="text-blue-300">ref</span>.<span class="text-blue-300">current</span>,
+      <span class="text-blue-300">src</span>: <span class="text-green-300">'video.mp4'</span>
+    });
+    <span class="text-purple-400">return</span> () => <span class="text-blue-300">player</span>.<span class="text-yellow-200">destroy</span>();
+  }, []);
+
+  <span class="text-purple-400">return</span> &lt;<span class="text-yellow-200">div</span> <span class="text-blue-300">ref</span>={<span class="text-blue-300">ref</span>} /&gt;;
+};</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <a href="https://github.com/bretmuchow07/clips-video-player" target="_blank"
+                        class="inline-flex items-center gap-2 text-soft-white hover:text-twilight-accent transition-colors border-b border-transparent hover:border-twilight-accent pb-0.5">
+                        <span>Check out the full documentation on GitHub</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-12 px-6 border-t border-white/5 bg-[#101D27]/50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="text-center md:text-left">
+                <p class="text-soft-muted text-sm">
+                    Built with <span class="text-red-400 animate-pulse">❤️</span> by
+                    <span class="text-soft-white font-medium">bret's corner</span>, for developers
+                </p>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <span class="text-soft-muted text-sm">MIT Licensed</span>
+                <span class="w-1 h-1 rounded-full bg-white/20"></span>
+                <span class="text-soft-muted text-sm">Version 1.0.1</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Video Player Script -->
+    <script src="./dist/video-player.js"></script>
+
+    <!-- App Logic -->
+    <script>
+        // Icons
+        lucide.createIcons();
+
+        // Mobile Menu
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        function toggleMenu() {
+            const isHidden = mobileMenu.classList.contains('translate-x-full');
+            if (isHidden) {
+                mobileMenu.classList.remove('translate-x-full');
+            } else {
+                mobileMenu.classList.add('translate-x-full');
+            }
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        closeMobileMenu.addEventListener('click', toggleMenu);
+        mobileLinks.forEach(link => link.addEventListener('click', toggleMenu));
+
+        // Copy Functionality
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const textToCopy = btn.getAttribute('data-copy');
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const icon = btn.querySelector('svg'); // Lucide replaces i with svg
+                    const originalIcon = icon.innerHTML; // Assuming we might want to restore specific SVG content, but lucide transforms completely.
+
+                    // Simple swap for Check icon
+                    // Since lucide renders SVG, we can't just change class name easily without re-running createIcons or swapping innerHTML manually.
+                    // Easier approach: Swapping standard SVG markup
+
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-green-400"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+                    setTimeout(() => {
+                        // Restore Copy Icon using Lucide (or just manually putting back the markup)
+                        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Initialize Video Player
+        document.addEventListener('DOMContentLoaded', () => {
+            const VP = (typeof VideoPlayer !== 'undefined' && typeof VideoPlayer.default === 'function') ? VideoPlayer.default : VideoPlayer;
+
+            if (VP) {
+                const player = new VP({
+                    container: '#video-container',
+                    src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                    controls: true,
+                    autoplay: false,
+                    theme: 'dark', // Assuming the library supports theme or color
+                    // primaryColor: '#8F62AA' // If library supports it
+                });
+            } else {
+                console.error("VideoPlayer library not found. Make sure dist/video-player.js is built.");
+            }
+        });
+    </script>
+</body>
+
+</html>

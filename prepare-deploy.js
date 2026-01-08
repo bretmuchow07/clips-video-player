@@ -64,3 +64,7 @@ if (fs.existsSync(demoAssets)) {
     }
     console.log('Copied assets folder');
 }
+
+// 5. Create .nojekyll to bypass Jekyll processing (good practice)
+fs.writeFileSync(path.join(DEPLOY_DIR, '.nojekyll'), '');
+console.log('Created .nojekyll file');
