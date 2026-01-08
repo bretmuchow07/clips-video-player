@@ -13,7 +13,9 @@
     "build": "npm run clean && rollup -c",
     "dev": "rollup -c -w",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "predeploy": "npm run build && node prepare-deploy.js",
+    "deploy": "gh-pages -d .deploy"
   },
   "keywords": [
     "video",
@@ -31,6 +33,7 @@
     "@rollup/plugin-node-resolve": "^15.2.0",
     "autoprefixer": "^10.4.16",
     "cssnano": "^6.0.1",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.31",
     "postcss-import": "^16.1.1",
     "rimraf": "^5.0.0",
