@@ -1,0 +1,20 @@
+:root {
+    /* Yellowstone Palette */
+    --vp-primary-color: #8F62AA;
+    /* Amethyst */
+    --vp-secondary-color: #554865;
+    /* English Violet */
+    --vp-accent-color: #373542;
+    /* Dark Liver */
+    --vp-bg-color: #101D27;
+    /* Rich Black */
+    --vp-text-color: #EDF2F4;
+    /* Anti-Flash White */
+
+    /* Component Variables */
+    --vp-control-bg: linear-gradient(to top, rgba(16, 29, 39, 0.95), rgba(16, 29, 39, 0));
+    --vp-menu-bg: rgba(55, 53, 66, 0.95);
+    --vp-font-family: 'Arvo', serif;
+    --vp-border-radius: 12px;
+    --vp-btn-hover-bg: rgba(237, 242, 244, 0.2);
+}

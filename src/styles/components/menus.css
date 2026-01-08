@@ -1,0 +1,65 @@
+/* Floating Menus (Settings, Quality, Speed, Captions) */
+
+.vp-menu {
+    position: absolute;
+    bottom: 45px;
+    right: 0;
+    background: var(--vp-menu-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 8px 0;
+    min-width: 120px;
+    max-height: 300px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.vp-menu.vp-active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.vp-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--vp-text-color);
+    padding: 10px 16px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s ease;
+    font-family: inherit;
+}
+
+.vp-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.vp-menu-btn.vp-selected {
+    background: rgba(74, 172, 254, 0.3);
+    color: var(--vp-primary-color);
+}
+
+.vp-menu-header {
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--vp-primary-color);
+    text-transform: uppercase;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 5px;
+}
+
+/* Specific Menu widths if needed */
+.vp-menu--wide {
+    min-width: 200px;
+}

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipse Video Player Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../dist/video-player.css">
+    <style>
+        :root {
+            --bg-color: #101D27;
+            --text-color: #EDF2F4;
+            --primary-color: #8F62AA;
+            --secondary-color: #554865;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arvo', serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hero / Landing Section */
+        .landing-hero {
+            padding: 80px 20px;
+            text-align: center;
+            background: radial-gradient(circle at top, var(--secondary-color) 0%, var(--bg-color) 70%);
+            margin-bottom: 40px;
+        }
+
+        .landing-hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .landing-hero p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Player Section */
+        .player-section {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            flex: 1;
+        }
+
+        #video-container {
+            width: 960px;
+            max-width: 100%;
+            aspect-ratio: 16/9;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Footer */
+        .brets-corner {
+            margin-top: auto;
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(to top, #000 0%, var(--bg-color) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .brets-corner-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .brets-corner-content:hover {
+            opacity: 1;
+        }
+
+        .brets-corner img {
+            height: 40px;
+            width: auto;
+        }
+
+        .brets-corner span {
+            font-size: 1.1rem;
+            font-style: italic;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="landing-hero">
+        <h1>Clipse Video Player</h1>
+        <p>A cinematic, modular video experience for the modern web. Built with vanilla JavaScript, designed for
+            elegance.</p>
+    </header>
+
+    <main class="player-section">
+        <div id="video-container">
+            <!-- Existing video tag method for demonstration -->
+            <!-- <video src="assets/videos/sample.mp4"></video> -->
+        </div>
+    </main>
+
+    <footer class="brets-corner">
+        <div class="brets-corner-content">
+            <span style="font-family: sans-serif; font-weight: bold; letter-spacing: -1px; font-size: 1.5rem;">[
+                ]</span> <!-- Placeholder for logo if image fails or just part of text design -->
+            <span>bret's corner presents...</span>
+            <img src="assets/logo.png" alt="Bret's Corner Logo" style="display: none;">
+            <!-- Using the uploaded logo if user prefers image, but using text based on request "bret's corner presents..." and maybe the logo image provided is the branding -->
+            <!-- Wait, the user uploaded an image. Let's try to use that image. -->
+        </div>
+    </footer>
+
+    <script src="../dist/video-player.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Rollup UMD export usually assigns the default export to the global variable directly.
+            // However, depending on interop, it might be .default.
+            // Safe check:
+            const VP = (typeof VideoPlayer.default === 'function') ? VideoPlayer.default : VideoPlayer;
+
+            const player = new VP({
+                container: '#video-container',
+                src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                controls: true,
+                autoplay: false,
+                theme: 'dark'
+            });
+
+            // Log events for demo purposes
+            player.on('play', () => console.log('Video playing'));
+            player.on('pause', () => console.log('Video paused'));
+        });
+
+        // Fix for logo logic:
+        // User uploaded a logo image. Let's use it.
+        const footerImg = document.querySelector('.brets-corner img');
+        if (footerImg) {
+            footerImg.style.display = 'block';
+            footerImg.previousElementSibling.previousElementSibling.style.display = 'none'; // Hide placeholder "[ ]"
+        }
+    </script>
+</body>
+
+</html>
