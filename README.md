@@ -12,14 +12,14 @@ A modular, framework-agnostic video player library built with vanilla JavaScript
 ## Installation
 
 ```bash
-npm install @clipse/video-player
+npm install @clipse_video-player/video-player
 ```
 
 Or via CDN:
 
 ```html
-<script src="https://cdn.example.com/video-player.js"></script>
-<link rel="stylesheet" href="https://cdn.example.com/video-player.css">
+<script src="https://unpkg.com/@clipse_video-player/video-player/dist/video-player.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@clipse_video-player/video-player/dist/video-player.css">
 ```
 
 ## Usage
@@ -27,8 +27,8 @@ Or via CDN:
 ### Basic Usage (JS)
 
 ```javascript
-import VideoPlayer from '@clipse/video-player';
-import '@clipse/video-player/dist/video-player.css'; // Don't forget CSS
+import VideoPlayer from '@clipse_video-player/video-player';
+import '@clipse_video-player/video-player/dist/video-player.css'; // Don't forget CSS
 
 const player = new VideoPlayer({
     container: '#video-container',
@@ -59,8 +59,8 @@ Use a `ref` to access the container and `useEffect` to initialize the player.
 
 ```jsx
 import React, { useEffect, useRef } from 'react';
-import VideoPlayer from '@clipse/video-player';
-import '@clipse/video-player/dist/video-player.css';
+import VideoPlayer from '@clipse_video-player/video-player';
+import '@clipse_video-player/video-player/dist/video-player.css';
 
 const MyVideoPlayer = () => {
     const containerRef = useRef(null);

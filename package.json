@@ -1,6 +1,9 @@
 {
-  "name": "@clipse/video-player",
-  "version": "1.0.0",
+  "name": "@clipse_video-player/video-player",
+  "version": "1.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "A modular, framework-agnostic video player library",
   "main": "dist/video-player.js",
   "module": "dist/video-player.esm.js",
