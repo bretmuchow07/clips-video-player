@@ -21,6 +21,13 @@ indexContent = indexContent.replace(/\.\.\/dist/g, './dist');
 fs.writeFileSync(path.join(DEPLOY_DIR, 'index.html'), indexContent);
 console.log('Copied and updated index.html');
 
+// 2b. Copy floating-lines.js
+const floatingLinesSrc = path.join(__dirname, 'demo', 'floating-lines.js');
+if (fs.existsSync(floatingLinesSrc)) {
+    fs.copyFileSync(floatingLinesSrc, path.join(DEPLOY_DIR, 'floating-lines.js'));
+    console.log('Copied floating-lines.js');
+}
+
 // 3. Copy dist folder
 if (fs.existsSync(DIST_DIR)) {
     const destDist = path.join(DEPLOY_DIR, 'dist');
