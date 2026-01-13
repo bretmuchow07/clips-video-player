@@ -49,10 +49,39 @@
     <!-- Custom Styles -->
     <style>
         body {
-            background: linear-gradient(135deg, #101D27 0%, #373542 50%, #554865 100%);
-            background-attachment: fixed;
+            /* Background moved to #bg-gradient to allow layering with FloatingLines */
+            background: transparent;
             color: #EDF2F4;
             -webkit-font-smoothing: antialiased;
+            position: relative;
+            /* Ensure stacking context */
+        }
+
+        #bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(135deg, #101D27 0%, #373542 50%, #554865 100%);
+            background-attachment: fixed;
+            /* Kept for consistency though fixed pos handles it */
+        }
+
+        #floating-lines-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            mix-blend-mode: screen;
+            /* Blend with the gradient */
+            opacity: 0.6;
+            /* Slight transparency to not overwhelm */
+            pointer-events: auto;
+            /* Allow interactivity */
         }
 
         /* Custom Scrollbar */
@@ -142,6 +171,9 @@
 </head>
 
 <body class="min-h-screen overflow-x-hidden selection:bg-twilight-accent selection:text-white">
+    <!-- Background Layers -->
+    <div id="bg-gradient"></div>
+    <div id="floating-lines-bg"></div>
 
     <!-- Header -->
     <header
@@ -541,6 +573,30 @@ export const Player = () => {
 
     <!-- Video Player Script -->
     <script src="../dist/video-player.js"></script>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Floating Lines Effect -->
+    <script src="floating-lines.js"></script>
+
+    <script>
+        // Initialize Floating Lines Background
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof FloatingLines !== 'undefined') {
+                new FloatingLines('floating-lines-bg', {
+                    enabledWaves: ['top', 'middle', 'bottom'],
+                    lineCount: [10, 15, 20],
+                    lineDistance: [8, 6, 4],
+                    bendRadius: 5.0,
+                    bendStrength: -0.5,
+                    interactive: true,
+                    parallax: true,
+                    // Using screen blend mode to composite with the gradient background
+                    // If the user wants the shader's internal background, remove the gradient div and mix-blend-mode.
+                });
+            }
+        });
+    </script>
 
     <!-- App Logic -->
     <script>
