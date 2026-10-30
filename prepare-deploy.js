@@ -4,7 +4,7 @@ const path = require('path');
 const DEPLOY_DIR = path.join(__dirname, '.deploy');
 const DEMO_FILE = path.join(__dirname, 'demo', 'index.html');
 const DIST_DIR = path.join(__dirname, 'dist');
-const ASSETS_DIR = path.join(__dirname, 'demo', 'assets'); // In case there are assets
+const ASSETS_DIR = path.join(__dirname, 'demo', 'assets');
 
 // 1. Clean .deploy
 if (fs.existsSync(DEPLOY_DIR)) {
@@ -21,22 +21,21 @@ indexContent = indexContent.replace(/\.\.\/dist/g, './dist');
 fs.writeFileSync(path.join(DEPLOY_DIR, 'index.html'), indexContent);
 console.log('Copied and updated index.html');
 
-// 2b. Copy floating-lines.js
-const floatingLinesSrc = path.join(__dirname, 'demo', 'floating-lines.js');
-if (fs.existsSync(floatingLinesSrc)) {
-    fs.copyFileSync(floatingLinesSrc, path.join(DEPLOY_DIR, 'floating-lines.js'));
-    console.log('Copied floating-lines.js');
-}
+// 2b. Copy demo runtime scripts and styles
+['floating-lines.js', 'cursor-grid.js', 'cursor-grid.css'].forEach(file => {
+    const src = path.join(__dirname, 'demo', file);
+    if (fs.existsSync(src)) {
+        fs.copyFileSync(src, path.join(DEPLOY_DIR, file));
+        console.log(`Copied ${file}`);
+    }
+});
 
 // 3. Copy dist folder
 if (fs.existsSync(DIST_DIR)) {
     const destDist = path.join(DEPLOY_DIR, 'dist');
-    // Node 16.7.0+ supports fs.cpSync with recursive
     if (fs.cpSync) {
         fs.cpSync(DIST_DIR, destDist, { recursive: true });
     } else {
-        // Fallback for older nodes if necessary (basic folder copy)
-        // Ignoring nested folders in dist since usually it's just files, but let's be safe
         fs.mkdirSync(destDist);
         fs.readdirSync(DIST_DIR).forEach(file => {
             const srcPath = path.join(DIST_DIR, file);
@@ -52,8 +51,6 @@ if (fs.existsSync(DIST_DIR)) {
 }
 
 // 4. Copy assets if they exist
-// The demo/index.html might reference assets/logo.png from previous conversations?
-// Let's check if 'demo/assets' exists and copy it.
 const demoAssets = path.join(__dirname, 'demo', 'assets');
 if (fs.existsSync(demoAssets)) {
     const destAssets = path.join(DEPLOY_DIR, 'assets');
@@ -72,6 +69,6 @@ if (fs.existsSync(demoAssets)) {
     console.log('Copied assets folder');
 }
 
-// 5. Create .nojekyll to bypass Jekyll processing (good practice)
+// 5. Create .nojekyll to bypass Jekyll processing
 fs.writeFileSync(path.join(DEPLOY_DIR, '.nojekyll'), '');
 console.log('Created .nojekyll file');

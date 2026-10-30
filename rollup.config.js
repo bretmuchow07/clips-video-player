@@ -14,6 +14,7 @@ export default {
       file: 'dist/video-player.js',
       format: 'umd',
       name: 'VideoPlayer',
+      exports: 'default',
       sourcemap: true
     },
     {
@@ -25,6 +26,7 @@ export default {
       file: 'dist/video-player.min.js',
       format: 'umd',
       name: 'VideoPlayer',
+      exports: 'default',
       plugins: [terser()],
       sourcemap: true
     }

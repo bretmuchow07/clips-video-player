@@ -1,5 +1,5 @@
 /**
- * Simple Pub/Sub Event System
+ * Lightweight, robust Pub/Sub Event System
  */
 export default class EventEmitter {
     constructor() {
@@ -7,6 +7,9 @@ export default class EventEmitter {
     }
 
     on(event, listener) {
+        if (typeof listener !== 'function') {
+            throw new TypeError('Event listener must be a function');
+        }
         if (!this.events[event]) {
             this.events[event] = [];
         }
@@ -21,11 +24,28 @@ export default class EventEmitter {
 
     emit(event, ...args) {
         if (!this.events[event]) return;
-        this.events[event].forEach(listener => listener(...args));
+        // Slice to prevent issues if a listener unbinds itself during iteration
+        const listeners = this.events[event].slice();
+        listeners.forEach(listener => {
+            try {
+                listener(...args);
+            } catch (err) {
+                console.error(`Error in event listener for "${event}":`, err);
+            }
+        });
     }
 
-    // Allow multiple events to be registered at once
+    removeAllListeners(event) {
+        if (event) {
+            delete this.events[event];
+        } else {
+            this.events = {};
+        }
+    }
+
+    // Allow multiple events to be registered at once with combined unbinder
     onAny(events, listener) {
-        events.forEach(event => this.on(event, listener));
+        const unbinders = events.map(event => this.on(event, listener));
+        return () => unbinders.forEach(unbind => unbind());
     }
 }

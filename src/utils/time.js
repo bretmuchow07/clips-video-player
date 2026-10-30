@@ -1,13 +1,26 @@
+/**
+ * Format seconds into human-readable mm:ss or hh:mm:ss
+ * @param {number} seconds 
+ * @returns {string}
+ */
 export function formatTime(seconds) {
-    if (isNaN(seconds)) return '00:00';
-
-    const date = new Date(seconds * 1000);
-    const hh = date.getUTCHours();
-    const mm = date.getUTCMinutes();
-    const ss = date.getUTCSeconds().toString().padStart(2, '0');
-
-    if (hh) {
-        return `${hh}:${mm.toString().padStart(2, '0')}:${ss}`;
+    if (seconds === null || seconds === undefined || isNaN(seconds) || seconds < 0) {
+        return '00:00';
     }
-    return `${mm}:${ss}`;
+    if (!isFinite(seconds)) {
+        return 'LIVE';
+    }
+
+    const totalSeconds = Math.floor(seconds);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    const paddedSecs = secs.toString().padStart(2, '0');
+    const paddedMins = minutes.toString().padStart(2, '0');
+
+    if (hours > 0) {
+        return `${hours}:${paddedMins}:${paddedSecs}`;
+    }
+    return `${paddedMins}:${paddedSecs}`;
 }

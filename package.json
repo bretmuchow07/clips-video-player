@@ -7,21 +7,32 @@
   "description": "A modular, framework-agnostic video player library",
   "main": "dist/video-player.js",
   "module": "dist/video-player.esm.js",
+  "types": "types/index.d.ts",
   "style": "dist/video-player.css",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/video-player.esm.js",
+      "require": "./dist/video-player.js"
+    },
+    "./dist/video-player.css": "./dist/video-player.css"
+  },
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\"",
-    "build": "npm run clean && node node_modules/rollup/dist/bin/rollup -c",
+    "build": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\" && rollup -c",
     "dev": "rollup -c -w",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "npm run build",
-    "predeploy": "npm run build && node prepare-deploy.js",
+    "test": "node --test tests/**/*.test.js",
+    "prepublishOnly": "npm run test && npm run build",
+    "predeploy": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\" && rollup -c && node prepare-deploy.js",
     "deploy": "gh-pages -d .deploy"
   },
   "keywords": [
     "video",
     "player",
     "html5",
-    "custom-controls"
+    "custom-controls",
+    "accessible",
+    "framework-agnostic"
   ],
   "author": "Clipse Team",
   "license": "MIT",

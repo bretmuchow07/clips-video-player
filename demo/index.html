@@ -4,12 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clipse Video Player - Modern, Lightweight, Accessible</title>
+    <title>Clipse Video Player — Modern, Lightweight, Framework-Agnostic HTML5 Player</title>
+    <meta name="description" content="A modular, zero-dependency HTML5 video player library with accessible controls, 60fps pointer scrubbing, native WebVTT subtitles, and deterministic memory teardown.">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,42 +20,38 @@
                 extend: {
                     colors: {
                         twilight: {
-                            teal: '#101D27',
+                            950: '#070D13',
+                            900: '#0B141C',
+                            800: '#111D28',
+                            700: '#172736',
+                            600: '#23374A',
                             purple: '#373542',
                             plum: '#554865',
                             accent: '#8F62AA',
+                            accentHover: '#A474C2',
                         },
                         soft: {
                             white: '#EDF2F4',
-                            muted: 'rgba(237, 242, 244, 0.7)',
+                            muted: '#94A3B8',
+                            border: 'rgba(237, 242, 244, 0.12)',
                         }
                     },
-                    backgroundImage: {
-                        'twilight-gradient': 'linear-gradient(to bottom right, #101D27, #373542, #554865)',
-                        'text-gradient': 'linear-gradient(to right, #F472B6, #A78BFA)',
-                        'btn-gradient': 'linear-gradient(to right, #8F62AA, #6D28D9)',
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
                     }
-                },
-                fontFamily: {
-                    sans: ['Inter', 'sans-serif'],
-                    mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
                 }
             }
         }
     </script>
 
-    <!-- Custom Styles -->
+    <!-- Custom Styles & Craft Rules -->
     <style>
         body {
-            /* Background moved to #bg-gradient to allow layering with FloatingLines */
-            background: transparent;
+            background: #070D13;
             color: #EDF2F4;
             -webkit-font-smoothing: antialiased;
             position: relative;
-            /* Ensure stacking context */
         }
 
         #bg-gradient {
@@ -64,602 +61,1125 @@
             width: 100%;
             height: 100%;
             z-index: -2;
-            background: linear-gradient(135deg, #101D27 0%, #373542 50%, #554865 100%);
-            background-attachment: fixed;
-            /* Kept for consistency though fixed pos handles it */
+            background: radial-gradient(circle at 50% 12%, #172736 0%, #070D13 80%);
         }
 
-        #floating-lines-bg {
+        #cursor-grid-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            mix-blend-mode: screen;
-            /* Blend with the gradient */
-            opacity: 0.6;
-            /* Slight transparency to not overwhelm */
-            pointer-events: auto;
-            /* Allow interactivity */
+            pointer-events: none;
         }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #101D27;
+            background: #070D13;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #373542;
+            background: #23374A;
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #554865;
+            background: #334B62;
         }
 
-        /* Glassmorphism Utilities */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(143, 98, 170, 0.2);
+        /* Surfaces with Generous Insets */
+        .glass-surface {
+            background: rgba(17, 29, 40, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(237, 242, 244, 0.12);
+            padding: 1.5rem;
         }
 
-        .glass-panel:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(143, 98, 170, 0.4);
-            box-shadow: 0 0 20px rgba(143, 98, 170, 0.15);
+        header.glass-surface {
+            padding: 1rem 1.5rem;
         }
 
-        /* Animations */
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Explicit Typographic Hierarchy */
+        h1 {
+            font-size: 3rem;
+            line-height: 1.15;
+            font-weight: 800;
+            letter-spacing: -0.025em;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2.25rem;
             }
         }
 
-        .animate-fade-in-down {
-            animation: fadeInDown 0.6s ease-out forwards;
+        h2 {
+            font-size: 1.625rem;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.015em;
         }
 
-        .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease-out forwards;
+        h3 {
+            font-size: 1.125rem;
+            line-height: 1.35;
+            font-weight: 600;
         }
 
-        .delay-100 {
-            animation-delay: 0.1s;
+        /* Keyboard Keycap */
+        .keycap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            padding: 0 7px;
+            background: #172736;
+            border: 1px solid rgba(237, 242, 244, 0.18);
+            border-bottom: 2px solid rgba(237, 242, 244, 0.35);
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            color: #EDF2F4;
+            transform-origin: center;
+            user-select: none;
         }
 
-        .delay-200 {
-            animation-delay: 0.2s;
+        /* Accordion Transitions */
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+            opacity: 0;
         }
 
-        .delay-300 {
-            animation-delay: 0.3s;
+        .faq-item.active .faq-answer {
+            max-height: 200px;
+            opacity: 1;
         }
 
-        /* Video Player Library CSS Override/Integration */
-        /* Assuming dist/video-player.css is loaded or styles are minimal enough */
+        .faq-item.active .faq-chevron {
+            transform: rotate(180deg);
+        }
     </style>
+
+    <!-- CursorGrid (React Bits) Stylesheet -->
+    <link rel="stylesheet" href="cursor-grid.css">
+
+    <!-- Clipse Video Player Library Styles -->
     <link rel="stylesheet" href="../dist/video-player.css">
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- GSAP for HyperFrames Animation Choreography -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 
-<body class="min-h-screen overflow-x-hidden selection:bg-twilight-accent selection:text-white">
-    <!-- Background Layers -->
+<body class="min-h-screen selection:bg-twilight-accent selection:text-white">
+    <!-- Ambient Background Layers -->
     <div id="bg-gradient"></div>
-    <div id="floating-lines-bg"></div>
+    <div id="cursor-grid-bg" class="cursor-grid"></div>
 
-    <!-- Header -->
-    <header
-        class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-sm bg-twilight-teal/10 border-b border-white/5 animate-fade-in-down">
-        <div class="flex items-center gap-2">
-            <div
-                class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+    <!-- Navigation Header -->
+    <header id="site-header" class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between glass-surface border-b border-soft-border/50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-twilight-accent flex items-center justify-center font-bold text-white shadow-md shadow-purple-950/40">
+                <i data-lucide="play" class="w-4 h-4 fill-white"></i>
             </div>
-            <span class="text-xl font-bold bg-clip-text text-transparent bg-text-gradient">
-                Clipse Video Player
-            </span>
+            <div class="flex items-center gap-2">
+                <span class="text-lg font-bold tracking-tight text-soft-white">Clipse</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-twilight-700 text-soft-muted font-mono font-medium border border-white/5">v1.0.1</span>
+            </div>
         </div>
 
-        <nav class="hidden md:flex items-center gap-8">
-            <a href="#demo"
-                class="text-sm font-medium text-soft-white/80 hover:text-twilight-accent transition-colors duration-200 relative group">
-                Demo
-                <span
-                    class="absolute -bottom-1 left-0 w-0 h-0.5 bg-twilight-accent transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a href="#features"
-                class="text-sm font-medium text-soft-white/80 hover:text-twilight-accent transition-colors duration-200 relative group">
-                Features
-                <span
-                    class="absolute -bottom-1 left-0 w-0 h-0.5 bg-twilight-accent transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a href="#docs"
-                class="text-sm font-medium text-soft-white/80 hover:text-twilight-accent transition-colors duration-200 relative group">
-                Docs
-                <span
-                    class="absolute -bottom-1 left-0 w-0 h-0.5 bg-twilight-accent transition-all duration-300 group-hover:w-full"></span>
-            </a>
+        <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a href="#workbench" class="text-soft-muted hover:text-soft-white transition-colors">Workbench</a>
+            <a href="#comparison" class="text-soft-muted hover:text-soft-white transition-colors">Why Clipse</a>
+            <a href="#architecture" class="text-soft-muted hover:text-soft-white transition-colors">Architecture</a>
+            <a href="#integration" class="text-soft-muted hover:text-soft-white transition-colors">Integration</a>
+            <a href="#faq" class="text-soft-muted hover:text-soft-white transition-colors">FAQ</a>
             <a href="https://github.com/bretmuchow07/clips-video-player" target="_blank" rel="noopener noreferrer"
-                class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel hover:bg-white/10 transition-all duration-300 group">
-                <i data-lucide="github"
-                    class="w-4 h-4 text-soft-white group-hover:text-twilight-accent transition-colors"></i>
-                <span class="text-sm font-medium">GitHub</span>
+                class="flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-twilight-700 hover:bg-twilight-plum text-soft-white transition-all text-xs font-semibold border border-white/10">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                <span>Star on GitHub</span>
             </a>
         </nav>
 
-        <!-- Mobile Menu Button -->
-        <button id="mobile-menu-btn" class="md:hidden p-2 text-soft-white">
+        <!-- Mobile Menu Toggle Button -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-soft-white hover:text-twilight-accent" aria-label="Toggle navigation menu">
             <i data-lucide="menu"></i>
         </button>
     </header>
 
-    <!-- Mobile Menu Overlay -->
+    <!-- Mobile Drawer Overlay -->
     <div id="mobile-menu"
-        class="fixed inset-0 z-40 bg-twilight-teal/95 backdrop-blur-xl transform translate-x-full transition-transform duration-300 md:hidden flex items-center justify-center">
-        <button id="close-mobile-menu" class="absolute top-6 right-6 p-2 text-soft-white">
+        class="fixed inset-0 z-40 bg-twilight-950/98 backdrop-blur-xl transform translate-x-full transition-transform duration-300 md:hidden flex flex-col items-center justify-center gap-8 text-xl font-medium">
+        <button id="close-mobile-menu" class="absolute top-6 right-6 p-2 text-soft-white" aria-label="Close menu">
             <i data-lucide="x"></i>
         </button>
-        <nav class="flex flex-col items-center gap-8 text-xl">
-            <a href="#demo" class="mobile-link text-soft-white hover:text-twilight-accent">Demo</a>
-            <a href="#features" class="mobile-link text-soft-white hover:text-twilight-accent">Features</a>
-            <a href="#docs" class="mobile-link text-soft-white hover:text-twilight-accent">Docs</a>
-            <a href="https://github.com/bretmuchow07/clips-video-player"
-                class="mobile-link flex items-center gap-2 text-soft-white hover:text-twilight-accent">
-                <i data-lucide="github"></i> GitHub
-            </a>
-        </nav>
+        <a href="#workbench" class="mobile-link text-soft-white hover:text-twilight-accent">Workbench</a>
+        <a href="#comparison" class="mobile-link text-soft-white hover:text-twilight-accent">Why Clipse</a>
+        <a href="#architecture" class="mobile-link text-soft-white hover:text-twilight-accent">Architecture</a>
+        <a href="#integration" class="mobile-link text-soft-white hover:text-twilight-accent">Integration</a>
+        <a href="#faq" class="mobile-link text-soft-white hover:text-twilight-accent">FAQ</a>
+        <a href="https://github.com/bretmuchow07/clips-video-player" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-soft-white">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            <span>GitHub Repository</span>
+        </a>
     </div>
 
-    <main>
-        <!-- Hero Section -->
-        <section class="relative pt-32 pb-20 px-6 md:pt-48 md:pb-32 overflow-hidden">
-            <!-- Background Glow Effects -->
-            <div class="absolute top-20 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] -z-10"></div>
-            <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-pink-600/10 rounded-full blur-[80px] -z-10"></div>
+    <main class="pt-28 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
+        <!-- Hero Section: Landing Page Formula -->
+        <section class="text-center max-w-4xl mx-auto mb-16 pt-6">
+            <!-- Headline: 6-12 Words Stating the Core Outcome -->
+            <h1 id="hero-headline" class="text-soft-white mb-5">
+                Flawless HTML5 Video Playback for Any Web Stack.
+            </h1>
 
-            <div class="max-w-7xl mx-auto text-center">
-                <div class="animate-fade-in-up">
-                    <span
-                        class="inline-block px-4 py-1.5 rounded-full glass-panel text-xs font-medium text-twilight-accent mb-6 border-twilight-accent/30">
-                        v1.0.1 is now available
-                    </span>
-                </div>
+            <!-- Subheadline: 15-25 Words Expanding on How -->
+            <p id="hero-subhead" class="text-base sm:text-lg text-soft-muted leading-relaxed mb-8 max-w-2xl mx-auto">
+                A modular, zero-dependency player engineered for 60fps scrubbing, full keyboard accessibility, native WebVTT subtitles, and deterministic memory teardown in SPAs.
+            </p>
 
-                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 animate-fade-in-up delay-100">
-                    The Modern Video Player for <br />
-                    <span class="bg-clip-text text-transparent bg-text-gradient">
-                        Web Developers
-                    </span>
-                </h1>
-
-                <p
-                    class="text-lg md:text-xl text-soft-muted max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up delay-200">
-                    A lightweight, fully customizable, and accessible video player
-                    component designed for the modern web. Built for you, ready for
-                    production.
-                </p>
-
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
-                    <button
-                        class="w-full sm:w-auto px-8 py-3.5 rounded-lg bg-btn-gradient text-white font-semibold shadow-lg shadow-purple-900/40 hover:shadow-purple-700/50 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group">
-                        Get Started
-                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </button>
-
-                    <button
-                        class="w-full sm:w-auto px-8 py-3.5 rounded-lg glass-panel text-soft-white font-medium hover:bg-white/10 hover:border-twilight-accent/50 transition-all duration-300 flex items-center justify-center gap-2">
-                        <i data-lucide="play-circle" class="w-4 h-4 text-twilight-accent"></i>
-                        View Demo
-                    </button>
-                </div>
+            <!-- Primary & Secondary CTA Buttons -->
+            <div id="hero-ctas" class="flex flex-wrap items-center justify-center gap-3.5 mb-10">
+                <a href="#workbench" class="px-6 py-3 rounded-lg bg-twilight-accent hover:bg-twilight-accentHover text-white font-semibold text-sm transition-all shadow-lg shadow-purple-950/40 inline-flex items-center gap-2 transform active:scale-95">
+                    <i data-lucide="play-circle" class="w-4 h-4"></i>
+                    <span>Explore Live Workbench</span>
+                </a>
+                <button id="hero-copy-btn" data-copy="npm install @clipse_video-player/video-player" class="px-5 py-3 rounded-lg bg-twilight-800 hover:bg-twilight-700 text-soft-white border border-soft-border text-xs font-mono inline-flex items-center gap-2 transition-all transform active:scale-95" aria-label="Copy install command">
+                    <span>npm install @clipse_video-player/video-player</span>
+                    <i data-lucide="copy" class="w-4 h-4 text-soft-muted"></i>
+                </button>
             </div>
-        </section>
 
-        <!-- Video Player Demo -->
-        <section id="demo" class="py-20 px-4 relative">
-            <div class="max-w-5xl mx-auto">
-                <div
-                    class="glass-panel rounded-2xl p-2 md:p-4 shadow-2xl shadow-black/40 relative overflow-hidden group animate-fade-in-up">
-                    <!-- Glow border effect -->
-                    <div
-                        class="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-50 pointer-events-none">
+            <!-- Trust Proof Bar: 4 Verifiable Engineering Guarantees -->
+            <div id="hero-trust" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto pt-6 border-t border-white/5 text-left text-xs text-soft-muted">
+                <div class="flex items-center gap-2.5">
+                    <i data-lucide="package" class="w-4 h-4 text-purple-400 shrink-0"></i>
+                    <div>
+                        <strong class="text-soft-white block font-semibold">12 kB Gzipped</strong>
+                        <span>Zero external dependencies</span>
                     </div>
-
-                    <!-- Video Container -->
-                    <div id="video-container"
-                        class="relative aspect-video bg-gradient-to-br from-gray-900 to-black rounded-xl overflow-hidden flex flex-col justify-between group-hover:shadow-[0_0_40px_rgba(143,98,170,0.3)] transition-shadow duration-500">
-                        <!-- The library will inject the player here -->
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <i data-lucide="zap" class="w-4 h-4 text-yellow-400 shrink-0"></i>
+                    <div>
+                        <strong class="text-soft-white block font-semibold">60 FPS Scrubbing</strong>
+                        <span>RAF throttled seek pipeline</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <i data-lucide="accessibility" class="w-4 h-4 text-green-400 shrink-0"></i>
+                    <div>
+                        <strong class="text-soft-white block font-semibold">WCAG AAA</strong>
+                        <span>Full ARIA & keyboard control</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-blue-400 shrink-0"></i>
+                    <div>
+                        <strong class="text-soft-white block font-semibold">Zero Leaks</strong>
+                        <span>Deterministic SPA teardown</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Features Grid -->
-        <section id="features" class="py-20 px-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-5xl font-bold mb-4">
-                        Everything you need
-                    </h2>
-                    <p class="text-soft-muted text-lg max-w-2xl mx-auto">
-                        Powerful features packed into a tiny footprint.
-                    </p>
+        <!-- Hero Showcase: Real Active Video Player -->
+        <section id="hero-player-section" class="mb-20 scroll-mt-24">
+            <div class="glass-surface rounded-2xl p-4 sm:p-6 shadow-2xl border border-soft-border">
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/5 text-xs text-soft-muted">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                        <span class="ml-2 font-mono text-soft-white" id="current-stream-label">Disney Oceans (720p HD)</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="player-status-badge" class="px-2.5 py-1 rounded bg-twilight-700 text-soft-muted font-mono font-medium">READY</span>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Feature Items -->
-                    <!-- 1 -->
-                    <div
-                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i data-lucide="settings-2" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-soft-white mb-3">Smart Controls</h3>
-                        <p class="text-soft-muted leading-relaxed">Built-in quality selection and settings menu
-                            interfaces, ready for your adaptive streams.</p>
-                    </div>
-
-                    <!-- 2 -->
-                    <div
-                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i data-lucide="zap" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-soft-white mb-3">Lightweight Core</h3>
-                        <p class="text-soft-muted leading-relaxed">Zero-dependency architecture. Optimized for blazing
-                            fast load times.</p>
-                    </div>
-
-                    <!-- 3 -->
-                    <div
-                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i data-lucide="code-2" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-soft-white mb-3">Event-Driven API</h3>
-                        <p class="text-soft-muted leading-relaxed">Rich event emitter system for seamless integration
-                            with your application logic.</p>
-                    </div>
-
-                    <!-- 4 -->
-                    <div
-                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-soft-white mb-3">Mobile Responsive</h3>
-                        <p class="text-soft-muted leading-relaxed">Touch-optimized controls that adapt seamlessly to
-                            different viewport sizes.</p>
-                    </div>
-
-                    <!-- 5 -->
-                    <div
-                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i data-lucide="layers" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-soft-white mb-3">Framework Agnostic</h3>
-                        <p class="text-soft-muted leading-relaxed">Pure Vanilla JS. Wrappable in React, Vue, Svelte, or
-                            Angular without issues.</p>
-                    </div>
-
-                    <!-- 6 -->
-                    <div
-                        class="glass-panel p-8 rounded-2xl group hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 border border-white/5">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-fuchsia-400 to-pink-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i data-lucide="palette" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-soft-white mb-3">Themable</h3>
-                        <p class="text-soft-muted leading-relaxed">Standard dark mode included. Easily customizable with
-                            CSS variables.</p>
-                    </div>
-
+                <!-- Live Player Container -->
+                <div id="player-aspect-wrapper" class="w-full relative aspect-video bg-black rounded-xl overflow-hidden shadow-inner">
+                    <div id="video-container" class="w-full h-full"></div>
                 </div>
             </div>
         </section>
 
-        <!-- Code Section -->
-        <section id="docs" class="py-20 px-6 relative overflow-hidden">
-            <!-- Background Overlay -->
-            <div class="absolute inset-0 bg-twilight-teal/50 backdrop-blur-sm -z-10"></div>
+        <!-- Problem vs. Solution Section -->
+        <section id="comparison" class="mb-20 scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-soft-white mb-2">Why Default HTML5 Players Break in Production</h2>
+                <p class="text-soft-muted text-sm">Most custom video players look fine in isolation, but fail under real SPA routing, mobile gestures, and accessibility audits.</p>
+            </div>
 
-            <div class="max-w-4xl mx-auto">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Simple to Use</h2>
-                    <p class="text-soft-muted">
-                        Get up and running in less than 30 seconds.
-                    </p>
+            <div class="glass-surface rounded-xl border border-soft-border divide-y divide-white/5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8">
+                    <div>
+                        <div class="text-red-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                            <span>The SPA Memory Trap</span>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Unremoved <code class="text-slate-300">document.addEventListener('click')</code> and timer loops retain entire DOM component trees in memory after route changes, degrading browser performance over time.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="text-green-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                            <span>Clipse Coordinated Teardown</span>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Every component inherits an automated disposer lifecycle. Invoking <code class="text-purple-300">player.destroy()</code> instantly dismantles all DOM elements, window listeners, RAF loops, and EventEmitter subscriptions.
+                        </p>
+                    </div>
                 </div>
 
-                <div class="rounded-xl overflow-hidden shadow-2xl border border-purple-500/30 bg-[#101D27]">
-                    <!-- Tabs -->
-                    <div class="flex border-b border-white/5">
-                        <button
-                            class="doc-tab active flex-1 px-6 py-3 text-sm font-medium text-white bg-white/5 border-b-2 border-twilight-accent transition-colors hover:bg-white/10"
-                            data-tab="cdn">
-                            Vanilla / CDN
-                        </button>
-                        <button
-                            class="doc-tab flex-1 px-6 py-3 text-sm font-medium text-soft-muted hover:text-white border-b-2 border-transparent transition-colors hover:bg-white/5"
-                            data-tab="react">
-                            React
-                        </button>
-                    </div>
-
-                    <!-- Terminal Header -->
-                    <div class="flex items-center justify-between px-4 py-3 bg-[#0A1219] border-b border-white/5">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
-                            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 py-8">
+                    <div>
+                        <div class="text-red-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                            <span>Decoder Seek Flooding</span>
                         </div>
-                        <div class="text-xs text-gray-500 font-mono">bash / js / jsx</div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Firing unthrottled <code class="text-slate-300">video.currentTime = t</code> on raw mousemove events overwhelms browser hardware decoders, causing severe frame drops, audio stutter, and frozen seek bars.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="text-green-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                            <span>RAF Throttled Seeking</span>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Scrubbing updates visual UI immediately while throttling hardware decoder seeks to 60fps via <code class="text-purple-300">requestAnimationFrame</code>, delivering buttery smooth scrubbing on all hardware.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
+                    <div>
+                        <div class="text-red-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                            <span>iOS Fullscreen & Volume Bugs</span>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Calling <code class="text-slate-300">container.requestFullscreen()</code> throws unhandled errors on iPhone Safari, while setting software volume fails silently because iOS locks volume to hardware buttons.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="text-green-400 font-mono text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                            <span>Native Platform Adaptation</span>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Detects iOS/iPadOS automatically, falls back to <code class="text-purple-300">webkitEnterFullscreen()</code>, hides non-functional software volume sliders, and keeps native playback robust.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Workbench Station -->
+        <section id="workbench" class="mb-20 scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-soft-white mb-2">Interactive Developer Workbench</h2>
+                <p class="text-soft-muted text-sm">Test live media switches, layout adjustments, and inspect real-time event telemetry emitted by the player.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left: Controls & HUD (7 cols) -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Media Source Switcher -->
+                    <div class="glass-surface rounded-xl border border-soft-border">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-twilight-accent mb-4 flex items-center gap-2 font-mono">
+                            <i data-lucide="film" class="w-4 h-4"></i>
+                            <span>Select Media Source</span>
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button class="stream-btn active p-3 rounded-lg bg-twilight-accent text-white text-xs font-medium text-left transition-all border border-purple-400/30"
+                                data-src="https://vjs.zencdn.net/v/oceans.mp4"
+                                data-title="Disney Oceans"
+                                data-tracks='[{"label":"English","src":"https://vjs.zencdn.net/v/oceans.vtt","srclang":"en","default":true}]'
+                                data-qualities='[{"label":"720p HD","src":"https://vjs.zencdn.net/v/oceans.mp4","res":720},{"label":"480p WebM","src":"https://vjs.zencdn.net/v/oceans.webm","res":480}]'>
+                                <div class="font-bold">Disney Oceans</div>
+                                <div class="text-[11px] opacity-80 mt-0.5">720p + WebVTT Subtitles</div>
+                            </button>
+                            <button class="stream-btn p-3 rounded-lg bg-twilight-800 hover:bg-twilight-700 text-soft-white text-xs font-medium text-left transition-all border border-soft-border"
+                                data-src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
+                                data-title="Sintel Trailer"
+                                data-qualities='[{"label":"1080p HD","src":"https://media.w3.org/2010/05/sintel/trailer_hd.mp4","res":1080},{"label":"720p SD","src":"https://media.w3.org/2010/05/sintel/trailer.mp4","res":720}]'>
+                                <div class="font-bold">Sintel Trailer</div>
+                                <div class="text-[11px] text-soft-muted mt-0.5">W3C HD Benchmark</div>
+                            </button>
+                            <button class="stream-btn p-3 rounded-lg bg-twilight-800 hover:bg-twilight-700 text-soft-white text-xs font-medium text-left transition-all border border-soft-border"
+                                data-src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+                                data-title="MDN Nature Clip"
+                                data-qualities='[{"label":"720p HD","src":"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4","res":720},{"label":"480p WebM","src":"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm","res":480}]'>
+                                <div class="font-bold">MDN Nature Clip</div>
+                                <div class="text-[11px] text-soft-muted mt-0.5">Mozilla CC0 Sample</div>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- CDN Content -->
-                    <div id="tab-cdn" class="tab-content block">
-                        <!-- HTML/CDN Import -->
-                        <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between group">
-                            <div class="font-mono text-xs md:text-sm text-soft-white whitespace-pre-wrap">
-                                <span class="text-gray-500">&lt;!-- CSS --&gt;</span>
-                                <span class="text-purple-400">&lt;link</span> <span
-                                    class="text-blue-300">rel</span>=<span class="text-green-300">"stylesheet"</span>
-                                <span class="text-blue-300">href</span>=<span
-                                    class="text-green-300">"https://unpkg.com/@clipse_video-player/video-player/dist/video-player.css"</span><span
-                                    class="text-purple-400">&gt;</span>
-
-                                <span class="text-gray-500">&lt;!-- JS --&gt;</span>
-                                <span class="text-purple-400">&lt;script</span> <span
-                                    class="text-blue-300">src</span>=<span
-                                    class="text-green-300">"https://unpkg.com/@clipse_video-player/video-player/dist/video-player.min.js"</span><span
-                                    class="text-purple-400">&gt;&lt;/script&gt;</span>
+                    <!-- Layout & Appearance Switcher -->
+                    <div class="glass-surface rounded-xl border border-soft-border space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-soft-muted mb-3 font-mono">Aspect Ratio</label>
+                                <div class="flex items-center gap-2">
+                                    <button class="aspect-btn active px-3.5 py-2 rounded-md text-xs font-mono font-medium bg-twilight-700 text-soft-white border border-white/10" data-aspect="aspect-video">16:9</button>
+                                    <button class="aspect-btn px-3.5 py-2 rounded-md text-xs font-mono font-medium bg-twilight-800 hover:bg-twilight-700 text-soft-muted hover:text-soft-white border border-soft-border" data-aspect="aspect-[21/9]">21:9 Cinema</button>
+                                    <button class="aspect-btn px-3.5 py-2 rounded-md text-xs font-mono font-medium bg-twilight-800 hover:bg-twilight-700 text-soft-muted hover:text-soft-white border border-soft-border" data-aspect="aspect-[4/3]">4:3 Classic</button>
+                                </div>
                             </div>
-                            <button
-                                class="copy-btn p-2 rounded hover:bg-white/10 transition-colors text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 self-start"
-                                data-copy='<link rel="stylesheet" href="https://unpkg.com/@clipse_video-player/video-player/dist/video-player.css">
-<script src="https://unpkg.com/@clipse_video-player/video-player/dist/video-player.min.js"></script>'>
-                                <i data-lucide="copy" class="w-4 h-4"></i>
-                            </button>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-soft-muted mb-3 font-mono">Color Theme</label>
+                                <div class="flex items-center gap-2">
+                                    <button class="theme-btn active px-3.5 py-2 rounded-md text-xs font-medium bg-twilight-700 text-soft-white border border-white/10" data-primary="#8F62AA">Yellowstone</button>
+                                    <button class="theme-btn px-3.5 py-2 rounded-md text-xs font-medium bg-twilight-800 hover:bg-twilight-700 text-soft-muted hover:text-soft-white border border-soft-border" data-primary="#3B82F6">Ocean Blue</button>
+                                    <button class="theme-btn px-3.5 py-2 rounded-md text-xs font-medium bg-twilight-800 hover:bg-twilight-700 text-soft-muted hover:text-soft-white border border-soft-border" data-primary="#10B981">Emerald</button>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Usage Code -->
-                        <div class="p-6 relative group">
-                            <button
-                                class="copy-btn absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-gray-400 hover:text-white opacity-0 group-hover:opacity-100"
-                                data-copy="<div id='player'></div>
-<script>
-  const player = new VideoPlayer({
-    container: '#player',
-    src: 'https://example.com/video.mp4'
-  });
-</script>">
-                                <i data-lucide="copy" class="w-4 h-4"></i>
-                            </button>
-
-                            <pre class="font-mono text-sm leading-relaxed overflow-x-auto text-left"><code>
-<span class="text-purple-400">&lt;div</span> <span class="text-blue-300">id</span>=<span class="text-green-300">"player"</span><span class="text-purple-400">&gt;&lt;/div&gt;</span>
-
-<span class="text-purple-400">&lt;script&gt;</span>
-  <span class="text-purple-400">const</span> <span class="text-blue-300">player</span> = <span class="text-purple-400">new</span> <span class="text-yellow-200">VideoPlayer</span>({
-    <span class="text-blue-300">container</span>: <span class="text-green-300">'#player'</span>,
-    <span class="text-blue-300">src</span>: <span class="text-green-300">'https://example.com/video.mp4'</span>
-  });
-<span class="text-purple-400">&lt;/script&gt;</span></code></pre>
+                        <div class="pt-4 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-soft-muted font-mono">CursorGrid Pattern</label>
+                                <span class="text-[11px] text-gray-500">React Bits interactive WebGL2 background</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="grid-style-btn active px-3 py-1.5 rounded-md text-xs font-mono font-medium bg-twilight-700 text-soft-white border border-white/10" data-style="lines">Lines</button>
+                                <button class="grid-style-btn px-3 py-1.5 rounded-md text-xs font-mono font-medium bg-twilight-800 hover:bg-twilight-700 text-soft-muted hover:text-soft-white border border-soft-border" data-style="dashed">Dashed</button>
+                                <button class="grid-style-btn px-3 py-1.5 rounded-md text-xs font-mono font-medium bg-twilight-800 hover:bg-twilight-700 text-soft-muted hover:text-soft-white border border-soft-border" data-style="dots">Dots</button>
+                                <button class="grid-style-btn px-3 py-1.5 rounded-md text-xs font-mono font-medium bg-twilight-800 hover:bg-twilight-700 text-soft-muted hover:text-soft-white border border-soft-border" data-style="crosses">Crosses</button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- React Content -->
-                    <div id="tab-react" class="tab-content hidden">
-                        <!-- NPM Install -->
-                        <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between group">
-                            <code class="font-mono text-sm text-soft-white">
-                                <span class="text-purple-400">npm</span> install @clipse_video-player/video-player
-                            </code>
-                            <button
-                                class="copy-btn p-2 rounded hover:bg-white/10 transition-colors text-gray-400 hover:text-white opacity-0 group-hover:opacity-100"
-                                data-copy="npm install @clipse_video-player/video-player">
-                                <i data-lucide="copy" class="w-4 h-4"></i>
-                            </button>
+                    <!-- Reactive Keyboard Navigation HUD -->
+                    <div class="glass-surface rounded-xl border border-soft-border">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-semibold uppercase tracking-wider text-soft-muted flex items-center gap-2 font-mono">
+                                <i data-lucide="keyboard" class="w-4 h-4"></i>
+                                <span>Reactive Keyboard HUD</span>
+                            </h3>
+                            <span class="text-[11px] text-soft-muted">Click player & tap keys</span>
                         </div>
-
-                        <!-- Usage Code -->
-                        <div class="p-6 relative group">
-                            <button
-                                class="copy-btn absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-gray-400 hover:text-white opacity-0 group-hover:opacity-100"
-                                data-copy="import React, { useEffect, useRef } from 'react';
-import VideoPlayer from '@clipse_video-player/video-player';
-import '@clipse_video-player/video-player/dist/video-player.css';
-
-export const Player = () => {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const player = new VideoPlayer({
-      container: ref.current,
-      src: 'video.mp4'
-    });
-    return () => player.destroy();
-  }, []);
-
-  return <div ref={ref} />;
-};">
-                                <i data-lucide="copy" class="w-4 h-4"></i>
-                            </button>
-
-                            <pre class="font-mono text-sm leading-relaxed overflow-x-auto text-left"><code>
-<span class="text-purple-400">import</span> <span class="text-yellow-200">React, { useEffect, useRef }</span> <span class="text-purple-400">from</span> <span class="text-green-300">'react'</span>;
-<span class="text-purple-400">import</span> <span class="text-yellow-200">VideoPlayer</span> <span class="text-purple-400">from</span> <span class="text-green-300">'@clipse_video-player/video-player'</span>;
-<span class="text-purple-400">import</span> <span class="text-green-300">'@clipse_video-player/video-player/dist/video-player.css'</span>;
-
-<span class="text-purple-400">export const</span> <span class="text-blue-300">Player</span> = () => {
-  <span class="text-purple-400">const</span> <span class="text-blue-300">ref</span> = <span class="text-yellow-200">useRef</span>(<span class="text-purple-400">null</span>);
-
-  <span class="text-yellow-200">useEffect</span>(() => {
-    <span class="text-purple-400">const</span> <span class="text-blue-300">player</span> = <span class="text-purple-400">new</span> <span class="text-yellow-200">VideoPlayer</span>({
-      <span class="text-blue-300">container</span>: <span class="text-blue-300">ref</span>.<span class="text-blue-300">current</span>,
-      <span class="text-blue-300">src</span>: <span class="text-green-300">'video.mp4'</span>
-    });
-    <span class="text-purple-400">return</span> () => <span class="text-blue-300">player</span>.<span class="text-yellow-200">destroy</span>();
-  }, []);
-
-  <span class="text-purple-400">return</span> &lt;<span class="text-yellow-200">div</span> <span class="text-blue-300">ref</span>={<span class="text-blue-300">ref</span>} /&gt;;
-};</code></pre>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-space">Space</span>
+                                <span class="text-soft-muted">Play / Pause</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-m">M</span>
+                                <span class="text-soft-muted">Mute</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-f">F</span>
+                                <span class="text-soft-muted">Fullscreen</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-arrowleft">←</span>
+                                <span class="keycap" id="key-arrowright">→</span>
+                                <span class="text-soft-muted">±5s Seek</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-arrowup">↑</span>
+                                <span class="keycap" id="key-arrowdown">↓</span>
+                                <span class="text-soft-muted">±5% Vol</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-k">K</span>
+                                <span class="text-soft-muted">Toggle Play</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-num">0–9</span>
+                                <span class="text-soft-muted">Jump 0–90%</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="keycap" id="key-tab">Tab</span>
+                                <span class="text-soft-muted">Focus UI</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-8 text-center">
-                    <a href="https://github.com/bretmuchow07/clips-video-player" target="_blank"
-                        class="inline-flex items-center gap-2 text-soft-white hover:text-twilight-accent transition-colors border-b border-transparent hover:border-twilight-accent pb-0.5">
-                        <span>Check out the full documentation on GitHub</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </a>
+                <!-- Right: Real-Time Event Stream (5 cols) -->
+                <div class="lg:col-span-5">
+                    <div class="glass-surface rounded-xl border border-soft-border h-full flex flex-col">
+                        <div class="pb-4 mb-3 border-b border-white/5 flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                <h3 class="text-xs font-semibold uppercase tracking-wider text-soft-white font-mono">Live Telemetry Stream</h3>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span id="event-count-badge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-twilight-700 text-soft-muted">0 events</span>
+                                <button id="clear-events-btn" class="text-[11px] font-mono text-soft-muted hover:text-soft-white transition-colors">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Event Log Scroll Area -->
+                        <div id="event-log-container" class="flex-1 font-mono text-xs overflow-y-auto max-h-[380px] space-y-2 text-soft-muted">
+                            <div class="text-gray-500 italic py-2">// Ready. Interacting with the video player prints live events here...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- Architecture & Guarantees Section -->
+        <section id="architecture" class="mb-20 scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-soft-white mb-2">Engineered for Production Demands</h2>
+                <p class="text-soft-muted text-sm">Every architectural decision was made to ensure stability in complex web environments.</p>
+            </div>
+
+            <div class="glass-surface rounded-xl border border-soft-border divide-y divide-white/5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8">
+                    <div>
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-twilight-accent"></i>
+                            <h3 class="text-base font-semibold text-soft-white">Guaranteed Memory Cleanup</h3>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Single-Page Apps mount and unmount components repeatedly. Clipse implements a coordinated disposer pattern across every component, ensuring zero lingering listeners on <code class="text-purple-300">document</code> or <code class="text-purple-300">window</code>.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <i data-lucide="pointer" class="w-5 h-5 text-twilight-accent"></i>
+                            <h3 class="text-base font-semibold text-soft-white">Pointer Capture Scrubbing</h3>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Unified Pointer Events with <code class="text-purple-300">setPointerCapture</code> guarantee scrubbing tracking even when the cursor or touch gesture moves outside the browser window, backed by requestAnimationFrame seek throttling.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
+                    <div>
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <i data-lucide="accessibility" class="w-5 h-5 text-twilight-accent"></i>
+                            <h3 class="text-base font-semibold text-soft-white">WCAG Accessible by Specification</h3>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Includes slider ARIA semantics (<code class="text-purple-300">role="slider"</code>, <code class="text-purple-300">aria-valuenow</code>, <code class="text-purple-300">aria-valuetext</code>), high-contrast focus rings for keyboard users, and screen-reader announcements.
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-2.5 mb-2">
+                            <i data-lucide="sliders" class="w-5 h-5 text-twilight-accent"></i>
+                            <h3 class="text-base font-semibold text-soft-white">Multi-Source Qualities & WebVTT</h3>
+                        </div>
+                        <p class="text-sm text-soft-muted leading-relaxed">
+                            Seamlessly switches multiple video resolutions while preserving currentTime and playback state. Leverages standard HTML5 <code class="text-purple-300">&lt;track&gt;</code> elements and CSS <code class="text-purple-300">::cue</code> for accessible subtitles.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Framework Integration Section -->
+        <section id="integration" class="mb-20 scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-soft-white mb-2">Framework Agnostic Integration</h2>
+                <p class="text-soft-muted text-sm">Works cleanly in vanilla JavaScript, React, Vue, Svelte, or server-rendered applications.</p>
+            </div>
+
+            <div class="glass-surface rounded-xl overflow-hidden border border-soft-border !p-0">
+                <!-- Navigation Tabs -->
+                <div class="flex border-b border-white/5 bg-twilight-950/60">
+                    <button class="code-tab active px-6 py-3.5 text-xs font-semibold text-soft-white border-b-2 border-twilight-accent transition-colors" data-tab="vanilla">
+                        Vanilla JS / CDN
+                    </button>
+                    <button class="code-tab px-6 py-3.5 text-xs font-semibold text-soft-muted hover:text-soft-white border-b-2 border-transparent transition-colors" data-tab="react">
+                        React (Hook)
+                    </button>
+                    <button class="code-tab px-6 py-3.5 text-xs font-semibold text-soft-muted hover:text-soft-white border-b-2 border-transparent transition-colors" data-tab="vue">
+                        Vue 3 (Composition)
+                    </button>
+                </div>
+
+                <!-- Code Block Content -->
+                <div class="p-6 font-mono text-xs overflow-x-auto relative">
+                    <button class="copy-code-btn absolute top-5 right-5 px-3 py-1.5 rounded bg-twilight-700 hover:bg-twilight-plum text-soft-white text-xs flex items-center gap-1.5 transition-all border border-white/10" aria-label="Copy code snippet">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <span>Copy</span>
+                    </button>
+
+                    <!-- Tab 1: Vanilla -->
+                    <pre id="code-vanilla" class="code-content text-soft-muted leading-relaxed"><code><span class="text-gray-500">&lt;!-- CSS Stylesheet --&gt;</span>
+<span class="text-purple-400">&lt;link</span> <span class="text-blue-300">rel</span>=<span class="text-green-300">"stylesheet"</span> <span class="text-blue-300">href</span>=<span class="text-green-300">"https://unpkg.com/@clipse_video-player/video-player/dist/video-player.css"</span><span class="text-purple-400">&gt;</span>
+
+<span class="text-gray-500">&lt;!-- Player Mount Container --&gt;</span>
+<span class="text-purple-400">&lt;div</span> <span class="text-blue-300">id</span>=<span class="text-green-300">"player"</span> <span class="text-blue-300">style</span>=<span class="text-green-300">"aspect-ratio: 16/9; width: 100%;"</span><span class="text-purple-400">&gt;&lt;/div&gt;</span>
+
+<span class="text-gray-500">&lt;!-- Clipse Video Player Library --&gt;</span>
+<span class="text-purple-400">&lt;script</span> <span class="text-blue-300">src</span>=<span class="text-green-300">"https://unpkg.com/@clipse_video-player/video-player/dist/video-player.min.js"</span><span class="text-purple-400">&gt;&lt;/script&gt;</span>
+<span class="text-purple-400">&lt;script&gt;</span>
+  <span class="text-blue-300">const</span> player = <span class="text-blue-300">new</span> <span class="text-yellow-300">VideoPlayer</span>({
+    container: <span class="text-green-300">'#player'</span>,
+    src: <span class="text-green-300">'https://example.com/video.mp4'</span>,
+    autoplay: <span class="text-yellow-400">false</span>,
+    keyboard: <span class="text-yellow-400">true</span>
+  });
+
+  player.<span class="text-yellow-300">on</span>(<span class="text-green-300">'play'</span>, () =&gt; console.log(<span class="text-green-300">'Playback started'</span>));
+<span class="text-purple-400">&lt;/script&gt;</span></code></pre>
+
+                    <!-- Tab 2: React -->
+                    <pre id="code-react" class="code-content hidden text-soft-muted leading-relaxed"><code><span class="text-blue-300">import</span> React, { useEffect, useRef } <span class="text-blue-300">from</span> <span class="text-green-300">'react'</span>;
+<span class="text-blue-300">import</span> VideoPlayer <span class="text-blue-300">from</span> <span class="text-green-300">'@clipse_video-player/video-player'</span>;
+<span class="text-blue-300">import</span> <span class="text-green-300">'@clipse_video-player/video-player/dist/video-player.css'</span>;
+
+<span class="text-blue-300">export default function</span> <span class="text-yellow-300">VideoPlayerComponent</span>({ src }) {
+  <span class="text-blue-300">const</span> containerRef = useRef(<span class="text-yellow-400">null</span>);
+
+  useEffect(() =&gt; {
+    <span class="text-blue-300">if</span> (!containerRef.current) <span class="text-blue-300">return</span>;
+
+    <span class="text-blue-300">const</span> player = <span class="text-blue-300">new</span> <span class="text-yellow-300">VideoPlayer</span>({
+      container: containerRef.current,
+      src,
+      keyboard: <span class="text-yellow-400">true</span>
+    });
+
+    <span class="text-gray-500">// Automatic teardown on unmount guarantees 0 memory leaks</span>
+    <span class="text-blue-300">return</span> () =&gt; player.<span class="text-yellow-300">destroy</span>();
+  }, [src]);
+
+  <span class="text-blue-300">return</span> &lt;<span class="text-purple-400">div</span> <span class="text-blue-300">ref</span>={containerRef} <span class="text-blue-300">style</span>={{ width: <span class="text-green-300">'100%'</span>, aspectRatio: <span class="text-green-300">'16/9'</span> }} /&gt;;
+}</code></pre>
+
+                    <!-- Tab 3: Vue -->
+                    <pre id="code-vue" class="code-content hidden text-soft-muted leading-relaxed"><code><span class="text-purple-400">&lt;template&gt;</span>
+  &lt;<span class="text-purple-400">div</span> <span class="text-blue-300">ref</span>=<span class="text-green-300">"container"</span> <span class="text-blue-300">style</span>=<span class="text-green-300">"width: 100%; aspect-ratio: 16/9;"</span> /&gt;
+<span class="text-purple-400">&lt;/template&gt;</span>
+
+<span class="text-purple-400">&lt;script setup&gt;</span>
+<span class="text-blue-300">import</span> { ref, onMounted, onUnmounted } <span class="text-blue-300">from</span> <span class="text-green-300">'vue'</span>;
+<span class="text-blue-300">import</span> VideoPlayer <span class="text-blue-300">from</span> <span class="text-green-300">'@clipse_video-player/video-player'</span>;
+<span class="text-blue-300">import</span> <span class="text-green-300">'@clipse_video-player/video-player/dist/video-player.css'</span>;
+
+<span class="text-blue-300">const</span> container = ref(<span class="text-yellow-400">null</span>);
+<span class="text-blue-300">let</span> player = <span class="text-yellow-400">null</span>;
+
+onMounted(() =&gt; {
+  player = <span class="text-blue-300">new</span> <span class="text-yellow-300">VideoPlayer</span>({
+    container: container.value,
+    src: <span class="text-green-300">'https://example.com/video.mp4'</span>
+  });
+});
+
+onUnmounted(() =&gt; {
+  <span class="text-blue-300">if</span> (player) player.<span class="text-yellow-300">destroy</span>();
+});
+<span class="text-purple-400">&lt;/script&gt;</span></code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Frequently Asked Questions (FAQ) Section -->
+        <section id="faq" class="mb-20 scroll-mt-24">
+            <div class="mb-8">
+                <h2 class="text-soft-white mb-2">Frequently Asked Questions</h2>
+                <p class="text-soft-muted text-sm">Common questions regarding architecture, customization, and framework integration.</p>
+            </div>
+
+            <div class="glass-surface rounded-xl border border-soft-border space-y-4">
+                <div class="faq-item border-b border-white/5 pb-4 cursor-pointer" tabindex="0" role="button" aria-expanded="false">
+                    <div class="flex items-center justify-between font-semibold text-soft-white text-sm">
+                        <span>How does Clipse eliminate memory leaks in Single Page Applications?</span>
+                        <i data-lucide="chevron-down" class="faq-chevron w-4 h-4 text-soft-muted transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer text-xs text-soft-muted leading-relaxed pt-2">
+                        Clipse registers all DOM, document, and video listeners through a centralized disposer array on every component. When <code class="text-purple-300">player.destroy()</code> is called in unmount hooks (such as React's <code class="text-purple-300">useEffect</code> return function or Vue's <code class="text-purple-300">onUnmounted</code>), every listener is systematically removed and all internal references are severed.
+                    </div>
+                </div>
+
+                <div class="faq-item border-b border-white/5 pb-4 cursor-pointer" tabindex="0" role="button" aria-expanded="false">
+                    <div class="flex items-center justify-between font-semibold text-soft-white text-sm">
+                        <span>Can I enhance an existing HTML5 video element without changing my markup?</span>
+                        <i data-lucide="chevron-down" class="faq-chevron w-4 h-4 text-soft-muted transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer text-xs text-soft-muted leading-relaxed pt-2">
+                        Yes. If your container already contains a <code class="text-purple-300">&lt;video&gt;</code> element, Clipse automatically detects it, preserves existing source and track attributes, and overlays its accessible UI controls without modifying your underlying HTML markup.
+                    </div>
+                </div>
+
+                <div class="faq-item border-b border-white/5 pb-4 cursor-pointer" tabindex="0" role="button" aria-expanded="false">
+                    <div class="flex items-center justify-between font-semibold text-soft-white text-sm">
+                        <span>How does Clipse address iOS Safari quirks?</span>
+                        <i data-lucide="chevron-down" class="faq-chevron w-4 h-4 text-soft-muted transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer text-xs text-soft-muted leading-relaxed pt-2">
+                        On iPhone Safari, standard HTML div containers cannot enter fullscreen mode. Clipse automatically detects this and redirects fullscreen requests directly to <code class="text-purple-300">video.webkitEnterFullscreen()</code>. Similarly, software volume sliders are cleanly hidden on iOS devices where volume is locked to physical hardware buttons.
+                    </div>
+                </div>
+
+                <div class="faq-item border-b border-white/5 pb-4 cursor-pointer" tabindex="0" role="button" aria-expanded="false">
+                    <div class="flex items-center justify-between font-semibold text-soft-white text-sm">
+                        <span>Can I customize the color palette and typography with CSS variables?</span>
+                        <i data-lucide="chevron-down" class="faq-chevron w-4 h-4 text-soft-muted transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer text-xs text-soft-muted leading-relaxed pt-2">
+                        Yes. Clipse is fully styled with CSS custom properties: <code class="text-purple-300">--vp-primary-color</code>, <code class="text-purple-300">--vp-bg-color</code>, <code class="text-purple-300">--vp-border-radius</code>, and <code class="text-purple-300">--vp-control-bg</code>. Overriding these properties on your container allows you to match any brand design system effortlessly.
+                    </div>
+                </div>
+
+                <div class="faq-item cursor-pointer" tabindex="0" role="button" aria-expanded="false">
+                    <div class="flex items-center justify-between font-semibold text-soft-white text-sm">
+                        <span>Does Clipse support streaming protocols like HLS or DASH?</span>
+                        <i data-lucide="chevron-down" class="faq-chevron w-4 h-4 text-soft-muted transition-transform duration-200"></i>
+                    </div>
+                    <div class="faq-answer text-xs text-soft-muted leading-relaxed pt-2">
+                        Clipse controls the underlying HTML5 video element. You can easily attach an <code class="text-purple-300">Hls.js</code> or <code class="text-purple-300">dash.js</code> instance directly to <code class="text-purple-300">player.video</code>, and all custom scrubbing, buffering indicators, hotkeys, and fullscreen controls will continue functioning flawlessly.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final High-Conversion CTA Section -->
+        <section class="glass-surface rounded-2xl border border-soft-border text-center py-12 px-6 mb-16">
+            <h2 class="text-soft-white mb-3 text-2xl sm:text-3xl font-bold">
+                Upgrade Your Web Video Experience Today.
+            </h2>
+            <p class="text-soft-muted text-sm max-w-xl mx-auto mb-8 leading-relaxed">
+                Free and open source under the MIT license. Add Clipse to your project in seconds and deliver accessible, robust playback to your users.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                <button data-copy="npm install @clipse_video-player/video-player" class="px-6 py-3 rounded-lg bg-twilight-accent hover:bg-twilight-accentHover text-white font-semibold text-sm transition-all shadow-lg shadow-purple-950/40 inline-flex items-center gap-2 transform active:scale-95" aria-label="Copy install command">
+                    <span>npm install @clipse_video-player/video-player</span>
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                </button>
+                <a href="https://github.com/bretmuchow07/clips-video-player" target="_blank" rel="noopener noreferrer" class="px-5 py-3 rounded-lg bg-twilight-800 hover:bg-twilight-700 text-soft-white border border-soft-border text-sm font-semibold inline-flex items-center gap-2 transition-all">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                    <span>View Repository</span>
+                </a>
+            </div>
+        </section>
     </main>
 
     <!-- Footer -->
-    <footer class="py-12 px-6 border-t border-white/5 bg-[#101D27]/50 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="text-center md:text-left">
-                <p class="text-soft-muted text-sm">
-                    Built with <span class="text-red-400 animate-pulse">❤️</span> by
-                    <span class="text-soft-white font-medium">bret's corner</span>, for developers
-                </p>
+    <footer class="py-10 px-6 border-t border-soft-border/50 glass-surface">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-soft-muted">
+            <div class="flex items-center gap-2">
+                <span class="font-semibold text-soft-white">Clipse Video Player</span>
+                <span>— Open source, released under the MIT License. Built for production reliability.</span>
             </div>
-
             <div class="flex items-center gap-6">
-                <span class="text-soft-muted text-sm">MIT Licensed</span>
-                <span class="w-1 h-1 rounded-full bg-white/20"></span>
-                <span class="text-soft-muted text-sm">Version 1.0.1</span>
+                <a href="https://github.com/bretmuchow07/clips-video-player" target="_blank" rel="noopener noreferrer" class="hover:text-soft-white transition-colors">GitHub Repository</a>
+                <a href="https://www.npmjs.com/package/@clipse_video-player/video-player" target="_blank" rel="noopener noreferrer" class="hover:text-soft-white transition-colors">NPM Package</a>
+                <span>v1.0.1</span>
             </div>
         </div>
     </footer>
 
-    <!-- Video Player Script -->
+    <!-- Video Player UMD Bundle -->
     <script src="../dist/video-player.js"></script>
 
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Floating Lines Effect -->
-    <script src="floating-lines.js"></script>
+    <!-- CursorGrid (React Bits) WebGL2 Component -->
+    <script src="cursor-grid.js"></script>
 
+    <!-- Main Logic & HyperFrames Animation Choreography -->
     <script>
-        // Initialize Floating Lines Background
+        // Global CursorGrid instance reference
+        let cursorGrid = null;
+
+        // 1. Initialize CursorGrid (React Bits) WebGL2 Background
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof FloatingLines !== 'undefined') {
-                new FloatingLines('floating-lines-bg', {
-                    enabledWaves: ['top', 'middle', 'bottom'],
-                    lineCount: [10, 15, 20],
-                    lineDistance: [8, 6, 4],
-                    bendRadius: 5.0,
-                    bendStrength: -0.5,
-                    interactive: true,
-                    parallax: true,
-                    // Using screen blend mode to composite with the gradient background
-                    // If the user wants the shader's internal background, remove the gradient div and mix-blend-mode.
-                });
+            if (typeof CursorGrid !== 'undefined') {
+                try {
+                    cursorGrid = new CursorGrid('#cursor-grid-bg', {
+                        cellSize: 54,
+                        color: '#A78BFA',
+                        gridColor: '#382752',
+                        highlight: 'area',
+                        gridStyle: 'lines',
+                        radius: 150,
+                        holdTime: 400,
+                        fadeDuration: 800,
+                        fillOpacity: 0.07,
+                        gridOpacity: 0.10,
+                        spotlight: 0.65,
+                        clickPulse: true,
+                        pulseSpeed: 600,
+                        ambient: 0.12,
+                        edgeFade: 0.22,
+                        intro: true
+                    });
+                } catch (e) {
+                    console.warn('CursorGrid WebGL2 initialization bypassed:', e);
+                }
             }
         });
-    </script>
 
-    <!-- App Logic -->
-    <script>
-        // Icons
-        lucide.createIcons();
+        // 2. HyperFrames Entrance Choreography (GSAP)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof gsap !== 'undefined') {
+                const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-        // Mobile Menu
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const closeMobileMenu = document.getElementById('close-mobile-menu');
-        const mobileLinks = document.querySelectorAll('.mobile-link');
-
-        function toggleMenu() {
-            const isHidden = mobileMenu.classList.contains('translate-x-full');
-            if (isHidden) {
-                mobileMenu.classList.remove('translate-x-full');
-            } else {
-                mobileMenu.classList.add('translate-x-full');
+                tl.from('#site-header', {
+                    y: -24,
+                    opacity: 0,
+                    duration: 0.6
+                })
+                .from('#hero-headline', {
+                    y: 28,
+                    opacity: 0,
+                    duration: 0.7
+                }, '-=0.3')
+                .from('#hero-subhead', {
+                    y: 20,
+                    opacity: 0,
+                    duration: 0.6
+                }, '-=0.4')
+                .from('#hero-ctas', {
+                    y: 16,
+                    opacity: 0,
+                    duration: 0.5
+                }, '-=0.4')
+                .from('#hero-trust > div', {
+                    y: 16,
+                    opacity: 0,
+                    stagger: 0.08,
+                    duration: 0.5
+                }, '-=0.3')
+                .from('#hero-player-section', {
+                    y: 32,
+                    scale: 0.98,
+                    opacity: 0,
+                    duration: 0.8
+                }, '-=0.4');
             }
-        }
+        });
 
-        mobileMenuBtn.addEventListener('click', toggleMenu);
-        closeMobileMenu.addEventListener('click', toggleMenu);
-        mobileLinks.forEach(link => link.addEventListener('click', toggleMenu));
+        // 3. Main Workbench & Application Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
 
-        // Copy Functionality
-        document.querySelectorAll('.copy-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const textToCopy = btn.getAttribute('data-copy');
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    const icon = btn.querySelector('svg'); // Lucide replaces i with svg
-                    const originalIcon = icon.innerHTML; // Assuming we might want to restore specific SVG content, but lucide transforms completely.
+            // Mobile Menu Drawer
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-link');
 
-                    // Simple swap for Check icon
-                    // Since lucide renders SVG, we can't just change class name easily without re-running createIcons or swapping innerHTML manually.
-                    // Easier approach: Swapping standard SVG markup
+            function toggleMenu() {
+                mobileMenu.classList.toggle('translate-x-full');
+            }
 
-                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-green-400"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            mobileMenuBtn?.addEventListener('click', toggleMenu);
+            closeMobileMenu?.addEventListener('click', toggleMenu);
+            mobileLinks.forEach(link => link.addEventListener('click', toggleMenu));
 
-                    setTimeout(() => {
-                        // Restore Copy Icon using Lucide (or just manually putting back the markup)
-                        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
-                    }, 2000);
+            // Copy to Clipboard Buttons
+            document.querySelectorAll('[data-copy]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const text = btn.getAttribute('data-copy');
+                    navigator.clipboard.writeText(text).then(() => {
+                        const originalHTML = btn.innerHTML;
+                        btn.innerHTML = '<span>Copied!</span> <svg class="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+                        setTimeout(() => {
+                            btn.innerHTML = originalHTML;
+                            lucide.createIcons();
+                        }, 2000);
+                    });
                 });
             });
-        });
 
-        // Initialize Video Player
-        document.addEventListener('DOMContentLoaded', () => {
-            const VP = (typeof VideoPlayer !== 'undefined' && typeof VideoPlayer.default === 'function') ? VideoPlayer.default : VideoPlayer;
+            // Code Integration Tabs
+            const codeTabs = document.querySelectorAll('.code-tab');
+            const codeContents = {
+                vanilla: document.getElementById('code-vanilla'),
+                react: document.getElementById('code-react'),
+                vue: document.getElementById('code-vue')
+            };
 
-            if (VP) {
-                const player = new VP({
+            codeTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    codeTabs.forEach(t => {
+                        t.classList.remove('active', 'border-twilight-accent', 'text-soft-white');
+                        t.classList.add('border-transparent', 'text-soft-muted');
+                    });
+                    tab.classList.add('active', 'border-twilight-accent', 'text-soft-white');
+                    tab.classList.remove('border-transparent', 'text-soft-muted');
+
+                    const target = tab.getAttribute('data-tab');
+                    Object.keys(codeContents).forEach(k => {
+                        if (k === target) {
+                            codeContents[k].classList.remove('hidden');
+                        } else {
+                            codeContents[k].classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Copy Code Block Button
+            const copyCodeBtn = document.querySelector('.copy-code-btn');
+            copyCodeBtn?.addEventListener('click', () => {
+                const activeCode = document.querySelector('.code-content:not(.hidden) code');
+                if (activeCode) {
+                    navigator.clipboard.writeText(activeCode.innerText).then(() => {
+                        const originalText = copyCodeBtn.querySelector('span').innerText;
+                        copyCodeBtn.querySelector('span').innerText = 'Copied!';
+                        setTimeout(() => {
+                            copyCodeBtn.querySelector('span').innerText = originalText;
+                        }, 2000);
+                    });
+                }
+            });
+
+            // Interactive FAQ Accordions
+            document.querySelectorAll('.faq-item').forEach(item => {
+                const toggle = () => {
+                    const isActive = item.classList.contains('active');
+                    // Close others
+                    document.querySelectorAll('.faq-item').forEach(i => {
+                        i.classList.remove('active');
+                        i.setAttribute('aria-expanded', 'false');
+                    });
+                    if (!isActive) {
+                        item.classList.add('active');
+                        item.setAttribute('aria-expanded', 'true');
+                    }
+                };
+                item.addEventListener('click', toggle);
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle();
+                    }
+                });
+            });
+
+            // Video Player Instance Management
+            let player = null;
+            const eventLogContainer = document.getElementById('event-log-container');
+            const eventCountBadge = document.getElementById('event-count-badge');
+            const statusBadge = document.getElementById('player-status-badge');
+            let eventCount = 0;
+
+            function logEvent(name, detail = '') {
+                eventCount++;
+                eventCountBadge.textContent = `${eventCount} events`;
+
+                const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+                const entry = document.createElement('div');
+                entry.className = 'log-entry flex items-center justify-between py-1 border-b border-white/5';
+
+                let color = 'text-purple-300';
+                if (name === 'play') color = 'text-green-400';
+                if (name === 'pause') color = 'text-yellow-400';
+                if (name === 'fullscreenchange') color = 'text-blue-400';
+
+                entry.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-500 font-mono text-[10px]">${time}</span>
+                        <span class="${color} font-semibold">${name}</span>
+                    </div>
+                    <span class="text-gray-400 text-[11px] truncate max-w-[140px]">${detail}</span>
+                `;
+
+                if (eventLogContainer.querySelector('.italic')) {
+                    eventLogContainer.innerHTML = '';
+                }
+
+                eventLogContainer.insertBefore(entry, eventLogContainer.firstChild);
+
+                if (typeof gsap !== 'undefined') {
+                    gsap.from(entry, { opacity: 0, y: -6, duration: 0.15, ease: 'power2.out' });
+                }
+
+                while (eventLogContainer.children.length > 40) {
+                    eventLogContainer.removeChild(eventLogContainer.lastChild);
+                }
+            }
+
+            document.getElementById('clear-events-btn')?.addEventListener('click', () => {
+                eventCount = 0;
+                eventCountBadge.textContent = '0 events';
+                eventLogContainer.innerHTML = '<div class="text-gray-500 italic py-2">// Ready. Interacting with the video player prints live events here...</div>';
+            });
+
+            function initPlayer(options) {
+                if (player) {
+                    player.destroy();
+                    player = null;
+                }
+
+                const defaults = {
                     container: '#video-container',
-                    src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                    src: 'https://vjs.zencdn.net/v/oceans.mp4',
                     controls: true,
                     autoplay: false,
-                    theme: 'dark', // Assuming the library supports theme or color
-                    // primaryColor: '#8F62AA' // If library supports it
+                    keyboard: true,
+                    crossorigin: 'anonymous',
+                    tracks: [
+                        { label: 'English', src: 'https://vjs.zencdn.net/v/oceans.vtt', srclang: 'en', default: true }
+                    ],
+                    qualities: [
+                        { label: '720p HD', src: 'https://vjs.zencdn.net/v/oceans.mp4', res: 720 },
+                        { label: '480p WebM', src: 'https://vjs.zencdn.net/v/oceans.webm', res: 480 }
+                    ]
+                };
+
+                const finalConfig = { ...defaults, ...options };
+                player = new VideoPlayer(finalConfig);
+
+                player.on('play', () => {
+                    statusBadge.textContent = 'PLAYING';
+                    statusBadge.className = 'px-2.5 py-1 rounded bg-green-900/60 text-green-300 font-mono font-medium';
+                    logEvent('play');
                 });
-            } else {
-                console.error("VideoPlayer library not found. Make sure dist/video-player.js is built.");
+
+                player.on('pause', () => {
+                    statusBadge.textContent = 'PAUSED';
+                    statusBadge.className = 'px-2.5 py-1 rounded bg-yellow-900/60 text-yellow-300 font-mono font-medium';
+                    logEvent('pause');
+                });
+
+                player.on('ended', () => {
+                    statusBadge.textContent = 'ENDED';
+                    statusBadge.className = 'px-2.5 py-1 rounded bg-twilight-700 text-soft-muted font-mono font-medium';
+                    logEvent('ended');
+                });
+
+                player.on('seeking', () => logEvent('seeking', `${player.video?.currentTime.toFixed(1)}s`));
+                player.on('volumechange', () => logEvent('volumechange', `vol: ${Math.round((player.video?.muted ? 0 : player.video?.volume) * 100)}%`));
+                player.on('speedchange', (speed) => logEvent('speedchange', `${speed}x`));
+                player.on('qualitychange', (q) => logEvent('qualitychange', q.label || `${q.res}p`));
+                player.on('captionschange', (track) => logEvent('captionschange', track ? (track.label || track.language) : 'off'));
+                player.on('fullscreenchange', (isFS) => logEvent('fullscreenchange', isFS ? 'entered' : 'exited'));
+                player.on('error', (err) => logEvent('error', err.message || 'playback error'));
             }
+
+            // Initialize default player
+            initPlayer();
+
+            // Stream Buttons
+            const streamButtons = document.querySelectorAll('.stream-btn');
+            streamButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    streamButtons.forEach(b => {
+                        b.classList.remove('active', 'bg-twilight-accent', 'border-purple-400/30');
+                        b.classList.add('bg-twilight-800', 'border-soft-border');
+                    });
+                    btn.classList.add('active', 'bg-twilight-accent', 'border-purple-400/30');
+                    btn.classList.remove('bg-twilight-800', 'border-soft-border');
+
+                    const src = btn.getAttribute('data-src');
+                    const title = btn.getAttribute('data-title');
+                    const qualitiesRaw = btn.getAttribute('data-qualities');
+                    const qualities = qualitiesRaw ? JSON.parse(qualitiesRaw) : null;
+                    const tracksRaw = btn.getAttribute('data-tracks');
+                    const tracks = tracksRaw ? JSON.parse(tracksRaw) : [];
+
+                    document.getElementById('current-stream-label').textContent = `${title} (${qualities ? qualities[0]?.label : 'Source'})`;
+
+                    initPlayer({ src, qualities, tracks });
+                });
+            });
+
+            // Aspect Ratio Buttons
+            const aspectWrapper = document.getElementById('player-aspect-wrapper');
+            const aspectButtons = document.querySelectorAll('.aspect-btn');
+            aspectButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    aspectButtons.forEach(b => {
+                        b.classList.remove('active', 'bg-twilight-700', 'text-soft-white', 'border-white/10');
+                        b.classList.add('bg-twilight-800', 'text-soft-muted', 'border-soft-border');
+                    });
+                    btn.classList.add('active', 'bg-twilight-700', 'text-soft-white', 'border-white/10');
+                    btn.classList.remove('bg-twilight-800', 'text-soft-muted', 'border-soft-border');
+
+                    aspectWrapper.classList.remove('aspect-video', 'aspect-[21/9]', 'aspect-[4/3]');
+                    aspectWrapper.classList.add(btn.getAttribute('data-aspect'));
+                });
+            });
+
+            // Theme Buttons
+            const themeColors = {
+                '#8F62AA': { color: '#A78BFA', gridColor: '#382752' },
+                '#3B82F6': { color: '#60A5FA', gridColor: '#1E293B' },
+                '#10B981': { color: '#34D399', gridColor: '#064E3B' }
+            };
+
+            const themeButtons = document.querySelectorAll('.theme-btn');
+            themeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    themeButtons.forEach(b => {
+                        b.classList.remove('active', 'bg-twilight-700', 'text-soft-white', 'border-white/10');
+                        b.classList.add('bg-twilight-800', 'text-soft-muted', 'border-soft-border');
+                    });
+                    btn.classList.add('active', 'bg-twilight-700', 'text-soft-white', 'border-white/10');
+                    btn.classList.remove('bg-twilight-800', 'text-soft-muted', 'border-soft-border');
+
+                    const color = btn.getAttribute('data-primary');
+                    document.documentElement.style.setProperty('--vp-primary-color', color);
+
+                    if (cursorGrid && themeColors[color]) {
+                        cursorGrid.update(themeColors[color]);
+                    }
+                    logEvent('themechange', color);
+                });
+            });
+
+            // CursorGrid Style Switcher (React Bits)
+            const gridStyleButtons = document.querySelectorAll('.grid-style-btn');
+            gridStyleButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    gridStyleButtons.forEach(b => {
+                        b.classList.remove('active', 'bg-twilight-700', 'text-soft-white', 'border-white/10');
+                        b.classList.add('bg-twilight-800', 'text-soft-muted', 'border-soft-border');
+                    });
+                    btn.classList.add('active', 'bg-twilight-700', 'text-soft-white', 'border-white/10');
+                    btn.classList.remove('bg-twilight-800', 'text-soft-muted', 'border-soft-border');
+
+                    const style = btn.getAttribute('data-style');
+                    if (cursorGrid) {
+                        cursorGrid.update({ gridStyle: style });
+                    }
+                    logEvent('cursorgrid:style', style);
+                });
+            });
+
+            // Reactive Keyboard HUD with GSAP Elastic Pop
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                let keycap = null;
+
+                if (key === ' ') keycap = document.getElementById('key-space');
+                else if (key === 'm') keycap = document.getElementById('key-m');
+                else if (key === 'f') keycap = document.getElementById('key-f');
+                else if (key === 'k') keycap = document.getElementById('key-k');
+                else if (key === 'arrowleft') keycap = document.getElementById('key-arrowleft');
+                else if (key === 'arrowright') keycap = document.getElementById('key-arrowright');
+                else if (key === 'arrowup') keycap = document.getElementById('key-arrowup');
+                else if (key === 'arrowdown') keycap = document.getElementById('key-arrowdown');
+                else if (key >= '0' && key <= '9') keycap = document.getElementById('key-num');
+                else if (key === 'tab') keycap = document.getElementById('key-tab');
+
+                if (keycap) {
+                    keycap.classList.add('active');
+                    if (typeof gsap !== 'undefined') {
+                        gsap.fromTo(keycap, { scale: 0.92 }, { scale: 1, duration: 0.2, ease: 'back.out(2)' });
+                    }
+                    setTimeout(() => keycap.classList.remove('active'), 180);
+                }
+            });
         });
     </script>
 </body>
