@@ -1,6 +1,6 @@
 {
   "name": "@clipse_video-player/video-player",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "publishConfig": {
     "access": "public"
   },
@@ -9,6 +9,11 @@
   "module": "dist/video-player.esm.js",
   "types": "types/index.d.ts",
   "style": "dist/video-player.css",
+  "files": [
+    "dist",
+    "types",
+    "src"
+  ],
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
